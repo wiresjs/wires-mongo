@@ -146,6 +146,31 @@ user.save().then(function(newuser) {
 });
 ```
 
+### Saving events and handlers
+
+You can decorate saving with multiple methods. Add them to your  model
+
+Triggered before performing creation request:
+```js
+onBeforeCreate: function(resolve, reject) {
+	resolve();
+}
+```
+
+Triggered before performing update request:
+
+```js
+onBeforeUpdate: function(resolve, reject) {
+	resolve();
+},
+```
+
+Triggered all the time when save is called
+```js
+onBeforeSave: function(resolve, reject) {
+	resolve();
+}
+```
 
 
 
