@@ -64,6 +64,21 @@ var = Model.extend({
 })
 ```
 
+## Attributes
+
+All attributes are stored in "attrs" dictionary. Attribute will be ignored in case of missing in schema.
+To set an attribute, use
+```js
+var user = new User();
+user.set("name", "john")
+```
+
+It is possible to constuct model with a dictionary
+
+```js
+var user = new User({name : "john"});
+```
+
 ## Queries
 Find accepts native mongodb query. 
 ```js
@@ -107,6 +122,24 @@ To set current projection
 var user = new TestUser();
 user.projection("user");
 ```
+
+See [tests](wiresjs/wires-mongo/blob/master/test/base_model_test.js) for better understanding
+
+## Saving
+Like any activerecord, either model has _id attribute or not, we detect what type of query it is.
+```js
+var user = new TestUser({
+    name: "john",
+});
+user.save().then(function(data) {
+	user.attrs._id.should.be.ok;
+	done();
+}).catch(function(e) {
+  logger.fatal(e.stack || e)
+});
+```
+
+
 
 
 
