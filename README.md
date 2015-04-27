@@ -65,7 +65,7 @@ var = Model.extend({
 ```
 
 ## Queries
-Find accepts native moggodb query. 
+Find accepts native mongodb query. 
 ```js
 var user = new TestUser();
 user.find({name : "john"}).first().then(function(model) {
@@ -83,9 +83,32 @@ user.find("name", "john")
 ```
 
 Find by id
-
+Input string will be automatically converted to mongoObject if string detected.
 ```js
 user.findById("mongodb id")
 ```
+
+### Query with projection
+It is possible to pass a projection. Add a projection to your model's properties
+
+```js
+projections: {
+	user: ["name", "email"],
+	world: {
+		exclude: ["password"],
+	}
+},
+```
+
+You can use "exclude" to exclude specific properties from the query.
+To set current projection
+
+```js
+var user = new TestUser();
+user.projection("user");
+```
+
+
+
 
 
