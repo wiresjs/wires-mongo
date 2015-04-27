@@ -24,6 +24,17 @@ describe('Model db queries', function() {
 		})
 	})
 
+	it('Should find all user and return an empty array', function(done) {
+		var user = new TestUser();
+		user.find().all().then(function(results) {
+			results.should.be.instanceof(Array).and.have.length(0)
+			done();
+		}).catch(function(e) {
+			done(e);
+		})
+
+	})
+
 	it('Should create a record', function(done) {
 		var user = new TestUser({
 			name: "ivan",

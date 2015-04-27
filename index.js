@@ -418,6 +418,8 @@ module.exports = Model = DBRequest.extend({
 				message: "Can't construct a model without schema"
 			}
 		}
+
+		this.remove = _.bind(this.remove, this);
 		// Validate first parameter
 		if (_.isPlainObject(data)) {
 			this.set(data); // Setting user values to attribute
