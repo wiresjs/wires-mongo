@@ -45,3 +45,47 @@ domain.service("$db", function() {
 	})
 });
 ```
+
+## Schemas
+Schemas are mandatory. It allows to do automatic validation on save, and brings transparency in your code after all.
+
+```js
+var Model = require('wires-mongo')
+var = Model.extend({
+	collection: "super_test",
+	schema: {
+		_id: [],
+		name: {
+		    required: true
+		},
+		email: [],
+		password: [],
+	}
+})
+```
+
+## Queries
+Find accepts native moggodb query. 
+```js
+var user = new TestUser();
+user.find({name : "john"}).first().then(function(model) {
+	model.attrs.name.should.be.equal("john")
+	done();
+}).catch(function(e) {
+	logger.fatal(e.stack || e)
+});
+```
+
+You can also use key and value as first and second arguments to fetch something using simple criterion.
+
+```js
+user.find("name", "john")
+```
+
+Find by id
+
+```js
+user.findById("mongodb id")
+```
+
+
