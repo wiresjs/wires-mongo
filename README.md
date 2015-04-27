@@ -162,7 +162,7 @@ user.save().then(function(newuser) {
 });
 ```
 
-### Saving events and handlers
+### Events on save
 
 You can decorate saving with multiple methods. Add them to your  model
 Triggered before create request:
