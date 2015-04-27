@@ -1,6 +1,6 @@
 # wires-mongo
 
-Wires Mongo is a simple ORM for mongodb. It uses native mongodb driver and does not invent any special quires. The driver is comprehensive enough. It is using Promises, and conforms to wires-domain protocol.
+Wires Mongo is a simple ORM for mongodb. It uses native mongodb driver and does not invent any special quires. The driver is comprehensive enough. It is using Promises, and has conform to wires-domain protocol.
 
 
 
@@ -10,7 +10,6 @@ Wires Mongo is a simple ORM for mongodb. It uses native mongodb driver and does 
   * Promise based
   * Schema with auto validations
   * Simple but powerful API
-  * Automatic reference "join"
   * Good test coverage with comprehensive examples
   
 
@@ -111,6 +110,23 @@ user.findById("mongodb id")
 
 You can use either first() or all() for performing mongodb request
 
+## With/Join
+
+It is possible to automatically fetch referenced items. 
+Let's say, we have a record Item, that has a reference "current_tag" that is a Tag model
+
+```js
+new Item().with("current_tag", Tag).all()
+```
+Instead of getting ObjectId as a result, activerecord will collect all ids that need to be fetched, and will make one opmtimized query to retrieve items for you! The same applies to lists that have ObjectId within
+
+```js
+new Item().with("tags", Tag)
+```
+
+See [with-query tests](wiresjs/wires-mongo/blob/master/test/with-query.js) for better understanding			
+
+
 
 
 ## Count
@@ -202,6 +218,13 @@ user.remove().then(function(response) {
 	done();
 })
 ```
+
+You can also remove all found records. No instance required. However, we will create instance per found item and perform "remove" on it. 
+
+```js
+new User().find({name : /test/}).removeAll();
+```
+
 ### Events on remove
 
 Put these method into your model. Throw any exception or reject!
