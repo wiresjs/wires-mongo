@@ -1,6 +1,6 @@
 {
 	"name": "wires-mongo",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
@@ -22,7 +22,7 @@
 		"mongodb": "1.4.17",
 		"promise": "^7.0.1",
 		"wires-class": "^1.0.0",
-		"wires-domain": "^1.1.6"
+		"wires-domain": "^1.1.7"
 	},
 	"devDependencies": {
 		"should": "^6.0.1"

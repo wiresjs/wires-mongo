@@ -9,6 +9,6 @@ domain.path("/", domain.BaseResource.extend({
 
 domain.path("/", domain.BaseResource.extend({
 	index: function($res) {
-		$res.send("hello")
+		return {}
 	}
 }));

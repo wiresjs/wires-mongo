@@ -2,6 +2,7 @@ var domain = require('../index.js');
 var pathToRegexp = require('path-to-regexp');
 var _ = require('lodash');
 var invoker = require('./invoker');
+var Promise = require("promise");
 var scope = require('./scope');
 
 var defineMethod = function(req) {
@@ -75,6 +76,25 @@ var callCurrentResource = function(info, req, res) {
 		parseOptions = handler;
 	}
 
+	var onError = function(e, res) {
+		var errResponse = {
+			status: 500,
+			message: "Error"
+		};
+
+		if (_.isObject(e)) {
+
+			errResponse.status = e.status || 500;
+			errResponse.message = e.message || "Error";
+			if (e.details) {
+				errResponse.details = e.details;
+			}
+		}
+
+		res.status(errResponse.status).send(errResponse);
+		logger.warning(e.stack || e)
+
+	}
 	invoker.invoke(parseOptions, {
 		$req: req,
 		$res: res,
@@ -90,20 +110,12 @@ var callCurrentResource = function(info, req, res) {
 			}
 		}
 	}).then(function(result) {
-
-	}).catch(function(err) {
-		var errResponse = {
-			status: 500,
-			message: "Error"
-		};
-		if (_.isObject(err)) {
-			errResponse.status = err.status || 500;
-			errResponse.message = err.message || "Error";
-			if (err.details) {
-				errResponse.details = err.details;
-			}
+		if (result !== undefined) {
+			res.send(result);
 		}
-		res.status(errResponse.status).send(errResponse);
+	}).catch(function(e) {
+
+		onError(e, res)
 	});
 }
 

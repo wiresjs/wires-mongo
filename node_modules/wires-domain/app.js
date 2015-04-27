@@ -17,7 +17,7 @@ require('require-all')(__dirname + '/testservices');
 require('require-all')(__dirname + '/testrest');
 app.use(domain.express());
 
-console.log(1);
+
 var server = app.listen(3000, function() {
 
 	var host = server.address().address;

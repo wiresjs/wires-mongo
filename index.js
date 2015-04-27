@@ -440,5 +440,17 @@ module.exports = Model = DBRequest.extend({
 			this._setAttribute(key, value);
 		}
 		return this;
+	},
+	toJSON: function() {
+		var schema = this.schema;
+		var self = this;
+		var values = {};
+		var self = this;
+		_.each(schema, function(params, name) {
+			if (!params.hidden) {
+				values[name] = self.attrs[name];
+			}
+		})
+		return values;
 	}
 });
