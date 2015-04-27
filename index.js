@@ -267,6 +267,9 @@ var DBRequest = Query.extend({
 
 		return Promise.all([
 			// Before saving
+			// 
+			new Promise(this._validate.bind(this)),
+
 			// this variable is bound for easy operations within
 			new Promise(this.onBeforeSave.bind(this)),
 			// If it's a new record resolving onBeforeCreate
@@ -274,13 +277,12 @@ var DBRequest = Query.extend({
 			// In any other case it's onBeforeUpdate
 			new Promise(this.onBeforeUpdate.bind(this)),
 
-			new Promise(this._validate.bind(this)),
 			// Require database
 			domain.require(function($db) {
 				return $db
 			})
 		]).then(function(res) {
-			var db = res[3];
+			var db = res[4];
 			var doc = self.toDatabase();
 			return new Promise(function(resolve, reject) {
 
