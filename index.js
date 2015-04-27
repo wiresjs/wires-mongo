@@ -24,6 +24,9 @@ var ValidationBase = Class.extend({
 				} catch (e) {}
 			}
 		}
+		if (value instanceof Model) {
+			return value.get("_id");
+		}
 		return value;
 	},
 	_getValidNumber: function(input) {
@@ -61,9 +64,7 @@ var ValidationBase = Class.extend({
 var EventBase = ValidationBase.extend({
 	initialize: function() {},
 	// Triggers each time key is set
-	onAttributeSet: function(key, value) {
-		return value;
-	},
+
 	onBeforeCreate: function(resolve, reject) {
 		resolve();
 	},
@@ -110,9 +111,25 @@ var ProjectionBase = EventBase.extend({
 		var data = {};
 		_.each(this.schema, function(v, k) {
 			if (self.attrs[k] !== undefined && k != "_id") {
-				data[k] = self.attrs[k]
+				if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
+					data[k] = self.attrs[k].get("_id")
+				} else {
+					data[k] = self.attrs[k]
+				}
+				// check for array
+				if (_.isArray(self.attrs[k])) {
+					var filteredArray = [];
+					_.each(self.attrs[k], function(item) {
+						if (item instanceof Model && item.get("_id")) {
+							filteredArray.push(item.get("_id"))
+						} else {
+							filteredArray.push(item);
+						}
+					});
+					data[k] = filteredArray;
+				}
 			}
-		});
+		}, this);
 		return data;
 	},
 	// Sets appropriate projection
@@ -255,7 +272,7 @@ var DBRequest = Query.extend({
 		var self = this;
 
 
-		return resolveall([
+		return resolveall.chain([
 			this._validate,
 			// this variable is bound for easy operations within
 			this.onBeforeSave,
@@ -312,7 +329,7 @@ var DBRequest = Query.extend({
 		var self = this;
 		var currentId = self.attrs._id;
 
-		return resolveall([
+		return resolveall.chain([
 			this.onBeforeRemove,
 			function(resolve, reject) {
 				if (!currentId)
@@ -341,7 +358,7 @@ var DBRequest = Query.extend({
 					item.remove().then(resolve).catch(reject);
 				});
 			});
-			return resolveall(fns, self);
+			return resolveall.chain(fns, self);
 		});
 	},
 	count: function() {
@@ -373,6 +390,25 @@ var DBRequest = Query.extend({
 			}).catch(reject);
 		});
 	},
+	resolveWithRequest: function(resolve, reject) {
+		var self = this.self;
+		var opts = this.opts;
+		new opts.target().find({
+			_id: {
+				$in: opts.ids
+			}
+		}).all().then(function(results) {
+			var map = {};
+			_.each(results, function(model) {
+				map[model.get("_id")] = model;
+			});
+			return resolve({
+				field: opts.field,
+				map: map
+			})
+		}).catch(reject);
+	},
+
 	dbRequest: function(cb) {
 		var self = this;
 		var Parent = this.constructor;
@@ -386,10 +422,78 @@ var DBRequest = Query.extend({
 					_.each(docs, function(item) {
 						models.push(new Parent(item));
 					});
-
 					return resolve(models);
+					//return self.resolveWithStatements(models, resolve, reject);
 				});
 			}).catch(reject);
+		}).then(function(models) {
+
+			// Resolving with statements
+			return new Promise(function(resolve, reject) {
+				if (Object.keys(self._reqParams.with).length === 0) {
+					return resolve(models);
+				}
+				var ids = {};
+				_.each(models, function(item) {
+					// APpend only valid ids
+
+					_.each(self._reqParams.with, function(target, field) {
+						if (!ids[field]) {
+							ids[field] = [];
+						}
+						if (item.attrs[field] instanceof ObjectID) {
+							ids[field].push(item.attrs[field])
+						}
+						// Check for arrays
+						if (_.isArray(item.attrs[field])) {
+							_.each(item.attrs[field], function(possibleID) {
+								if (possibleID instanceof ObjectID) {
+									ids[field].push(possibleID);
+								}
+							});
+						}
+					});
+				});
+				// Creating functions to be resolved
+				var toResolve = [];
+				_.each(ids, function(withIds, key) {
+					var filtered = _.unique(withIds)
+					toResolve.push(self.resolveWithRequest.bind({
+						self: self,
+						opts: {
+							field: key,
+							ids: filtered,
+							target: self._reqParams.with[key]
+						}
+					}))
+				});
+				resolveall.chain(toResolve).then(function(results) {
+					// Mapping it back to our model
+					_.each(models, function(item) {
+						_.each(results, function(data) {
+							var targetField = item.attrs[data.field]
+							if (targetField instanceof ObjectID) {
+								if (data.map[targetField.toString()]) {
+									// Setting a one2one records here
+									item.attrs[data.field] = data.map[targetField.toString()]
+								}
+							}
+							if (_.isArray(targetField)) {
+								var modelsArray = [];
+								_.each(targetField, function(mongoID) {
+									if (data.map[mongoID.toString()]) {
+										// Setting a one2one records here
+										modelsArray.push(data.map[mongoID.toString()]);
+									}
+								});
+								item.attrs[data.field] = modelsArray;
+							}
+						});
+					});
+					return resolve(models)
+
+				}).catch(reject);
+			});
 		});
 	}
 });
@@ -404,7 +508,8 @@ module.exports = Model = DBRequest.extend({
 
 		this._reqParams = {
 			query: {},
-			options: {}
+			options: {},
+			with: {},
 		}
 		if (!this.schema) {
 			throw {
@@ -418,10 +523,20 @@ module.exports = Model = DBRequest.extend({
 			this.set(data); // Setting user values to attribute
 		}
 	},
+	onAttributeSet: function(key, value) {
+		if (value instanceof Model) {
+			return value.get("_id");
+		}
+		return value;
+	},
 	_setAttribute: function(k, v) {
 		if (this._attrIsValid(k, k)) {
 			this.attrs[k] = this.onAttributeSet(k, v);
 		}
+	},
+	with: function(field, model) {
+		this._reqParams.with[field] = model;
+		return this;
 	},
 	get: function(key) {
 		return this.attrs[key];
