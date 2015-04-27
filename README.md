@@ -106,6 +106,20 @@ Input string will be automatically converted to mongoObject if string detected.
 user.findById("mongodb id")
 ```
 
+You can use either first() or all() for performing mongodb request
+
+
+
+## Count
+
+A simple query for count
+```js
+var user = new TestUser();
+user.find().count().then(function(num) {
+   num.should.be.equal(2);
+})
+```
+
 ### Query with projection
 It is possible to pass a projection. Add a projection to your model's properties
 
@@ -127,6 +141,8 @@ user.projection("user");
 ```
 
 See [tests](wiresjs/wires-mongo/blob/master/test/base_model_test.js) for better understanding
+
+
 
 ## Saving
 Like any activerecord we detect what type of query it is by absence or presence of _id attribute
@@ -197,6 +213,8 @@ onAfterRemove: function(resolve, reject) {
 	resolve();
 },
 ```
+
+
 
 
 
