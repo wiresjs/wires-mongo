@@ -71,6 +71,8 @@ To set an attribute, use
 ```js
 var user = new User();
 user.set("name", "john")
+// or
+user.set({name : "john"})
 ```
 
 It is possible to constuct model with a dictionary
@@ -80,6 +82,7 @@ var user = new User({name : "john"});
 ```
 
 ## Queries
+
 Find accepts native mongodb query. 
 ```js
 var user = new TestUser();
@@ -126,14 +129,15 @@ user.projection("user");
 See [tests](wiresjs/wires-mongo/blob/master/test/base_model_test.js) for better understanding
 
 ## Saving
-Like any activerecord, either model has _id attribute or not, we detect what type of query it is.
+Like any activerecord we detect what type of query it is by absence or presence of _id attribute
+
 ```js
 var user = new TestUser({
     name: "john",
 });
-user.save().then(function(data) {
-	user.attrs._id.should.be.ok;
-	done();
+user.save().then(function(newuser) {
+// At this point we have _id attribute set
+return newuser.set("name", "ivan").save()
 }).catch(function(e) {
   logger.fatal(e.stack || e)
 });
