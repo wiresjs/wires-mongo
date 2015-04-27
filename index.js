@@ -426,6 +426,9 @@ module.exports = Model = DBRequest.extend({
 			this.attrs[k] = this.onAttributeSet(k, v);
 		}
 	},
+	get: function(key) {
+		return this.attrs[key];
+	},
 	// Attaches values
 	set: function(key, value) {
 		if (_.isObject(key)) {
@@ -436,5 +439,6 @@ module.exports = Model = DBRequest.extend({
 		} else {
 			this._setAttribute(key, value);
 		}
+		return this;
 	}
 });
