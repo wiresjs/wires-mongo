@@ -282,7 +282,7 @@ var DBRequest = Query.extend({
 				return $db
 			})
 		]).then(function(res) {
-			var db = res[4];
+			var db = res[3];
 			var doc = self.toDatabase();
 			return new Promise(function(resolve, reject) {
 
