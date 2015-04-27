@@ -10,6 +10,7 @@ Wires Mongo is a simple ORM for mongodb. It uses native mongodb driver and does 
   * Promise based
   * Schema with auto validations
   * Simple but powerful API
+  * Automatic reference "join"
   * Good test coverage with comprehensive examples
   
 
