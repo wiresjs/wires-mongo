@@ -136,8 +136,11 @@ var user = new TestUser({
     name: "john",
 });
 user.save().then(function(newuser) {
-// At this point we have _id attribute set
-return newuser.set("name", "ivan").save()
+	// At this point we have _id attribute set
+	// Modify user name and return new promise
+	return newuser.set("name", "ivan").save()
+}).then(function(success){
+
 }).catch(function(e) {
   logger.fatal(e.stack || e)
 });
