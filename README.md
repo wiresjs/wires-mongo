@@ -150,7 +150,7 @@ user.save().then(function(newuser) {
 
 You can decorate saving with multiple methods. Add them to your  model
 
-Triggered before performing creation request:
+Triggered before performing creat request:
 ```js
 onBeforeCreate: function(resolve, reject) {
 	resolve();
@@ -173,6 +173,30 @@ onBeforeSave: function(resolve, reject) {
 ```
 
 
+## Removing
+Removing requires _id attribute set.
+
+Triggers 2 events, that's why response is an array that contains results from promises
+```js
+user.remove().then(function(response) {
+	// Amount of rows is in the second argument
+	response[1].should.be.equal(1);
+	done();
+})
+```
+### Events on remove
+
+Put these method into your model. Throw any exception or reject!
+But don't forget to resolve :-)
+
+```js
+onBeforeRemove: function(resolve, reject) {
+	resolve();
+},
+onAfterRemove: function(resolve, reject) {
+	resolve();
+},
+```
 
 
 
