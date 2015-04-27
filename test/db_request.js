@@ -20,7 +20,7 @@ describe('Model db queries', function() {
 		user.drop().then(function(data) {
 			done();
 		}).catch(function(e) {
-			logger.fatal(e.stack || e)
+			done();
 		})
 	})
 

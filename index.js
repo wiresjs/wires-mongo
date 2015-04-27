@@ -4,6 +4,7 @@ var _ = require('lodash');
 var Promise = require("promise");
 var logger = require("log4js").getLogger("model");
 var ObjectID = require('mongodb').ObjectID;
+var resolveall = require("resolveall")
 var Model;
 
 
@@ -38,6 +39,8 @@ var ValidationBase = Class.extend({
 	_validate: function(resolve, reject) {
 		var self = this;
 		var data = {};
+		var rejectMessage;
+
 		for (var key in this.schema) {
 			var params = this.schema[key];
 			if (_.isPlainObject(params)) {
@@ -234,25 +237,12 @@ var DBRequest = Query.extend({
 		var collectionName = this.collectionName;
 		var self = this;
 		return new Promise(function(resolve, reject) {
-			self.getCollectionNames(function(collections) {
-				if (_.indexOf(collections, collectionName) > -1) {
-					return collections;
-				} else {
-					resolve(true);
-				}
-			}).catch(reject).then(function(collections) {
-				if (!collections)
-					return;
-				domain.require(function($db) {
-					$db.collection(collectionName).drop(function(err, success) {
-						if (err) {
-							return reject(err);
-						}
-						wasDropped = true;
-						return resolve(success);
-					})
-				}).catch(reject);
-			})
+			domain.require(function($db) {
+				$db.collection(collectionName).drop(function(err, success) {
+					return resolve(success);
+				})
+			}).catch(reject);
+
 		})
 	},
 	// Saves data
@@ -265,52 +255,42 @@ var DBRequest = Query.extend({
 		var self = this;
 
 
-		return Promise.all([
-			// Before saving
-			// 
-			new Promise(this._validate.bind(this)),
-
+		return resolveall([
+			this._validate,
 			// this variable is bound for easy operations within
-			new Promise(this.onBeforeSave.bind(this)),
+			this.onBeforeSave,
 			// If it's a new record resolving onBeforeCreate
-			isNewRecord ? new Promise(this.onBeforeCreate.bind(this)) :
-			// In any other case it's onBeforeUpdate
-			new Promise(this.onBeforeUpdate.bind(this)),
-
-			// Require database
-			domain.require(function($db) {
-				return $db
-			})
-		]).then(function(res) {
-			var db = res[3];
+			isNewRecord ? this.onBeforeCreate : this.onBeforeUpdate
+		], this).then(function(res) {
 			var doc = self.toDatabase();
 			return new Promise(function(resolve, reject) {
-
-				if (isNewRecord) {
-					db.collection(self.collectionName).insert(doc, {
-						new: 1
-					}, function(err, records) {
-						if (err) {
-							return reject(err);
-						}
-						self.set(records[0]);
-						return resolve(self)
-					});
-				} else {
-					db.collection(self.collectionName).findAndModify({
-						_id: self.attrs._id
-					}, [], {
-						$set: doc
-					}, {
-						new: 1
-					}, function(e, doc) {
-						if (e) {
-							return reject(e)
-						}
-						self.set(doc);
-						return resolve(self);
-					});
-				}
+				domain.require(function($db) {
+					if (isNewRecord) {
+						$db.collection(self.collectionName).insert(doc, {
+							new: 1
+						}, function(err, records) {
+							if (err) {
+								return reject(err);
+							}
+							self.set(records[0]);
+							return resolve(self)
+						});
+					} else {
+						$db.collection(self.collectionName).findAndModify({
+							_id: self.attrs._id
+						}, [], {
+							$set: doc
+						}, {
+							new: 1
+						}, function(e, doc) {
+							if (e) {
+								return reject(e)
+							}
+							self.set(doc);
+							return resolve(self);
+						});
+					}
+				})
 			});
 		})
 	},
@@ -332,9 +312,9 @@ var DBRequest = Query.extend({
 		var self = this;
 		var currentId = self.attrs._id;
 
-		return Promise.all([
-			new Promise(this.onBeforeRemove.bind(this)),
-			new Promise(function(resolve, reject) {
+		return resolveall([
+			this.onBeforeRemove,
+			function(resolve, reject) {
 				if (!currentId)
 					return reject("Error in collection " + collectionName + ". ID is required in remove operation")
 				domain.require(function($db) {
@@ -347,9 +327,22 @@ var DBRequest = Query.extend({
 						return resolve(result);
 					});
 				}).catch(reject);
-			}),
-			new Promise(this.onAfterRemove.bind(this))
-		]);
+			},
+			this.onAfterRemove
+		], this);
+	},
+	// Removes all records
+	removeAll: function() {
+		var fns = [];
+		var self = this;
+		return this.all().then(function(res) {
+			_.each(res, function(item) {
+				fns.push(function(resolve, reject) {
+					item.remove().then(resolve).catch(reject);
+				});
+			});
+			return resolveall(fns, self);
+		});
 	},
 	count: function() {
 		var self = this;

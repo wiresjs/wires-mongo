@@ -38,8 +38,8 @@ module.exports = TesModel = Model.extend({
 		name: {
 			required: true
 		},
-		email: [],
-		password: [],
+		email: {},
+		password: {},
 	},
 	projections: {
 		user: ["name", "email", {
@@ -50,6 +50,9 @@ module.exports = TesModel = Model.extend({
 		world: {
 			exclude: ["password"],
 		}
+	},
+	onBeforeRemove: function(resolve, reject) {
+		resolve();
 	},
 	onBeforeSave: function(resolve, reject) {
 		var self = this;

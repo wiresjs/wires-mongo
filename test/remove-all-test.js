@@ -5,7 +5,7 @@ var TestUser = require("./model.js")
 
 
 
-describe('Removing should be okay', function() {
+describe('Remove All', function() {
 
 	var user1;
 	var user2;
@@ -34,27 +34,26 @@ describe('Removing should be okay', function() {
 		})
 	});
 
-	it('Users should be defined', function() {
-		user1.should.be.ok;
-		user2.should.be.ok;
-	});
-
-	it('Find user using criterion and remove it after', function(done) {
-		var user = new TestUser();
-		user.find({
-			name: "ivan"
-		}).first().then(function(ivan) {
-			ivan.should.be.ok;
-			return ivan.remove();
-		}).then(function(response) {
-			response[1].should.be.equal(1);
+	it('Checking current amount of data', function(done) {
+		new TestUser().find().count().then(function(count) {
+			count.should.be.equal(2);
 			done();
-		}).catch(function(e) {
-
-			done(e);
-		})
+		});
 	});
 
 
+	it('Removing all data', function(done) {
+		new TestUser().find().removeAll().then(function(data) {
+			data.length.should.be.equal(2)
+			done();
+		});
+	});
+
+	it('Count should be zero after deletion', function(done) {
+		new TestUser().find().count().then(function(count) {
+			count.should.be.equal(0);
+			done();
+		});
+	});
 
 });
