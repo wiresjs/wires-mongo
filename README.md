@@ -8,6 +8,7 @@ Wires Mongo is a simple ORM for mongodb. It uses native mongodb driver and does 
 
   * Model mapping
   * Promise based
+  * Reference fetching with optimized query
   * Schema with auto validations
   * Simple but powerful API
   * Good test coverage with comprehensive examples
@@ -49,7 +50,7 @@ domain.service("$db", function() {
 ```
 
 ## Schemas
-Schemas are mandatory. It allows to do automatic validation on save, and brings transparency in your code after all.
+Schemas are mandatory. It allows you to do automatic validation on save, and brings transparency to your code.
 
 ```js
 var Model = require('wires-mongo')
@@ -86,9 +87,9 @@ var user = new User({name : "john"});
 ## Queries
 
 Find accepts native mongodb query. 
+
 ```js
-var user = new TestUser();
-user.find({name : "john"}).first().then(function(model) {
+TestUser.find({name : "john"}).first().then(function(model) {
 	model.attrs.name.should.be.equal("john")
 	done();
 }).catch(function(e) {
@@ -99,13 +100,13 @@ user.find({name : "john"}).first().then(function(model) {
 You can also use key and value as first and second arguments to fetch something using simple criterion.
 
 ```js
-user.find("name", "john")
+TestUser.find("name", "john")
 ```
 
 Find by id
 Input string will be automatically converted to mongoObject if string detected.
 ```js
-user.findById("mongodb id")
+TestUser.findById("mongodb id")
 ```
 
 You can use either first() or all() for performing mongodb request
@@ -113,15 +114,15 @@ You can use either first() or all() for performing mongodb request
 ## With/Join
 
 It is possible to automatically fetch referenced items. 
-Let's say, we have a record Item, that has a reference "current_tag" that is a Tag model
+Let's say, we have a record Item, that has a reference "current_tag" that is a model "Tag"
 
 ```js
-new Item().with("current_tag", Tag).all()
+Item.find().with("current_tag", Tag).all()
 ```
 Instead of getting ObjectId as a result, activerecord will collect all ids that need to be fetched, and will make one opmtimized query to retrieve items for you! The same applies to lists that have ObjectId within
 
 ```js
-new Item().with("tags", Tag)
+Item.find().with("tags", Tag)
 ```
 
 See [with-query tests](wiresjs/wires-mongo/blob/master/test/with-query.js) for better understanding			
@@ -133,8 +134,7 @@ See [with-query tests](wiresjs/wires-mongo/blob/master/test/with-query.js) for b
 
 A simple query for count
 ```js
-var user = new TestUser();
-user.find().count().then(function(num) {
+TestUser.find().count().then(function(num) {
    num.should.be.equal(2);
 })
 ```
@@ -164,6 +164,7 @@ See [tests](wiresjs/wires-mongo/blob/master/test/base_model_test.js) for better 
 
 
 ## Saving
+
 Like any activerecord we detect what type of query it is by absence or presence of _id attribute
 
 ```js
@@ -179,6 +180,20 @@ user.save().then(function(newuser) {
 }).catch(function(e) {
   logger.fatal(e.stack || e)
 });
+```
+### Default values
+
+Add "defaults" key to your schema to set a default value.
+Note, it will be set only when database request is performed.
+
+```js
+schema: {
+		_id: [],
+		name: {},
+		published: {
+			defaults: false
+		}
+	}
 ```
 
 ### Events on save

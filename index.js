@@ -109,12 +109,12 @@ var ProjectionBase = EventBase.extend({
 	toDatabase: function() {
 		var self = this;
 		var data = {};
-		_.each(this.schema, function(v, k) {
+		_.each(this.schema, function(options, k) {
 			if (self.attrs[k] !== undefined && k != "_id") {
 				if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
 					data[k] = self.attrs[k].get("_id")
 				} else {
-					data[k] = self.attrs[k]
+					data[k] = self.attrs[k];
 				}
 				// check for array
 				if (_.isArray(self.attrs[k])) {
@@ -127,6 +127,10 @@ var ProjectionBase = EventBase.extend({
 						}
 					});
 					data[k] = filteredArray;
+				}
+			} else {
+				if (options.defaults !== undefined) {
+					data[k] = options.defaults;
 				}
 			}
 		}, this);
@@ -408,7 +412,56 @@ var DBRequest = Query.extend({
 			})
 		}).catch(reject);
 	},
+	// Bind models to fields
+	// Understand and array of mongoid's
+	_bindReferences: function(models, results) {
+		_.each(models, function(item) {
+			_.each(results, function(data) {
+				var targetField = item.attrs[data.field]
+				if (targetField instanceof ObjectID) {
+					if (data.map[targetField.toString()]) {
+						// Setting a one2one records here
+						item.attrs[data.field] = data.map[targetField.toString()]
+					}
+				}
+				if (_.isArray(targetField)) {
+					var modelsArray = [];
+					_.each(targetField, function(mongoID) {
+						if (data.map[mongoID.toString()]) {
+							// Setting a one2one records here
+							modelsArray.push(data.map[mongoID.toString()]);
+						}
+					});
+					item.attrs[data.field] = modelsArray;
+				}
+			});
+		});
+	},
+	_extractIdsFromReferences: function(models) {
+		var ids = {};
+		var self = this;
+		_.each(models, function(item) {
+			// APpend only valid ids
 
+			_.each(self._reqParams.with, function(target, field) {
+				if (!ids[field]) {
+					ids[field] = [];
+				}
+				if (item.attrs[field] instanceof ObjectID) {
+					ids[field].push(item.attrs[field])
+				}
+				// Check for arrays
+				if (_.isArray(item.attrs[field])) {
+					_.each(item.attrs[field], function(possibleID) {
+						if (possibleID instanceof ObjectID) {
+							ids[field].push(possibleID);
+						}
+					});
+				}
+			});
+		});
+		return ids;
+	},
 	dbRequest: function(cb) {
 		var self = this;
 		var Parent = this.constructor;
@@ -433,28 +486,8 @@ var DBRequest = Query.extend({
 				if (Object.keys(self._reqParams.with).length === 0) {
 					return resolve(models);
 				}
-				var ids = {};
-				_.each(models, function(item) {
-					// APpend only valid ids
-
-					_.each(self._reqParams.with, function(target, field) {
-						if (!ids[field]) {
-							ids[field] = [];
-						}
-						if (item.attrs[field] instanceof ObjectID) {
-							ids[field].push(item.attrs[field])
-						}
-						// Check for arrays
-						if (_.isArray(item.attrs[field])) {
-							_.each(item.attrs[field], function(possibleID) {
-								if (possibleID instanceof ObjectID) {
-									ids[field].push(possibleID);
-								}
-							});
-						}
-					});
-				});
-				// Creating functions to be resolved
+				var ids = self._extractIdsFromReferences(models)
+					// Creating functions to be resolved
 				var toResolve = [];
 				_.each(ids, function(withIds, key) {
 					var filtered = _.unique(withIds)
@@ -468,28 +501,7 @@ var DBRequest = Query.extend({
 					}))
 				});
 				resolveall.chain(toResolve).then(function(results) {
-					// Mapping it back to our model
-					_.each(models, function(item) {
-						_.each(results, function(data) {
-							var targetField = item.attrs[data.field]
-							if (targetField instanceof ObjectID) {
-								if (data.map[targetField.toString()]) {
-									// Setting a one2one records here
-									item.attrs[data.field] = data.map[targetField.toString()]
-								}
-							}
-							if (_.isArray(targetField)) {
-								var modelsArray = [];
-								_.each(targetField, function(mongoID) {
-									if (data.map[mongoID.toString()]) {
-										// Setting a one2one records here
-										modelsArray.push(data.map[mongoID.toString()]);
-									}
-								});
-								item.attrs[data.field] = modelsArray;
-							}
-						});
-					});
+					self._bindReferences(models, results);
 					return resolve(models)
 
 				}).catch(reject);
@@ -564,5 +576,18 @@ module.exports = Model = DBRequest.extend({
 			}
 		})
 		return values;
+	}
+}, {
+	find: function() {
+		var instance = new this();
+		return instance.find.apply(instance, arguments)
+	},
+	drop: function() {
+		var instance = new this();
+		return instance.drop.apply(instance, arguments)
+	},
+	findById: function() {
+		var instance = new this();
+		return instance.findById.apply(instance, arguments)
 	}
 });
