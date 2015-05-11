@@ -397,11 +397,13 @@ var DBRequest = Query.extend({
 	resolveWithRequest: function(resolve, reject) {
 		var self = this.self;
 		var opts = this.opts;
-		new opts.target().find({
+
+		// If actually model was passed
+		opts.target.find({
 			_id: {
 				$in: opts.ids
 			}
-		}).all().then(function(results) {
+		}).mergeRequestParams(opts.target._reqParams).all().then(function(results) {
 			var map = {};
 			_.each(results, function(model) {
 				map[model.get("_id")] = model;
@@ -530,10 +532,22 @@ module.exports = Model = DBRequest.extend({
 		}
 
 		this.remove = _.bind(this.remove, this);
-		// Validate first parameter
-		if (_.isPlainObject(data)) {
-			this.set(data); // Setting user values to attribute
+
+		// Allowing nice access point for wrappers
+		if (data && _.isFunction(data['getAttributes'])) {
+			this.set(data.getAttributes());
+		} else {
+			// Validate first parameter
+			if (_.isPlainObject(data)) {
+				this.set(data); // Setting user values to attribute
+			}
 		}
+	},
+	mergeRequestParams: function(data) {
+		if (_.isPlainObject(data)) {
+			this._reqParams = _.merge(this._reqParams, data);
+		}
+		return this;
 	},
 	onAttributeSet: function(key, value) {
 		if (value instanceof Model) {
@@ -578,6 +592,10 @@ module.exports = Model = DBRequest.extend({
 		return values;
 	}
 }, {
+	with: function() {
+		var instance = new this();
+		return instance.with.apply(instance, arguments)
+	},
 	find: function() {
 		var instance = new this();
 		return instance.find.apply(instance, arguments)

@@ -16,6 +16,21 @@ describe('Basic model test', function() {
 		should.deepEqual(attrs, user.attrs);
 	});
 
+	it('Shoud construct with helper (.getAttributes)', function() {
+		var attrs = {
+			name: "ivan",
+			email: "ivan@morrr.com"
+		}
+
+		var helperFunc = {
+			getAttributes: function() {
+				return attrs;
+			}
+		}
+		var user = new TestUser(helperFunc);
+		should.deepEqual(attrs, user.attrs);
+	});
+
 	it('Shoud filter out attributes that are not described', function() {
 		var attrs = {
 			name: "ivan",
