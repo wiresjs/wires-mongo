@@ -8,6 +8,20 @@ var resolveall = require("resolveall")
 var Model;
 
 
+var tryMongoId = function(value) {
+	if (_.isString(value)) {
+		if (value.length === 24) {
+			var validMongoId = new RegExp("^[0-9a-fA-F]{24}$");
+			if (validMongoId.test(value)) {
+				try {
+					return ObjectID.createFromHexString(value);
+				} catch (e) {}
+			}
+		}
+	}
+	return value;
+}
+
 var ValidationBase = Class.extend({
 	initialize: function() {},
 	// Validates key and value
@@ -17,16 +31,10 @@ var ValidationBase = Class.extend({
 		return this.schema[v] !== undefined;
 	},
 	_queryValue: function(key, value) {
-		if (key && key.indexOf("id") > -1) {
-			if (_.isString(value)) {
-				try {
-					value = ObjectID.createFromHexString(value);
-				} catch (e) {}
-			}
-		}
 		if (value instanceof Model) {
 			return value.get("_id");
 		}
+		value = tryMongoId(value);
 		return value;
 	},
 	_getValidNumber: function(input) {
@@ -106,27 +114,34 @@ var EventBase = ValidationBase.extend({
  */
 var ProjectionBase = EventBase.extend({
 	initialize: function() {},
+
 	toDatabase: function() {
 		var self = this;
 		var data = {};
 		_.each(this.schema, function(options, k) {
 			if (self.attrs[k] !== undefined && k != "_id") {
-				if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
-					data[k] = self.attrs[k].get("_id")
+				// Check if it's a reference
+				if (options.reference) {
+					// And convert it to mongoid
+					data[k] = tryMongoId(self.attrs[k])
 				} else {
-					data[k] = self.attrs[k];
-				}
-				// check for array
-				if (_.isArray(self.attrs[k])) {
-					var filteredArray = [];
-					_.each(self.attrs[k], function(item) {
-						if (item instanceof Model && item.get("_id")) {
-							filteredArray.push(item.get("_id"))
-						} else {
-							filteredArray.push(item);
-						}
-					});
-					data[k] = filteredArray;
+					if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
+						data[k] = self.attrs[k].get("_id")
+					} else {
+						data[k] = self.attrs[k];
+					}
+					// check for array
+					if (_.isArray(self.attrs[k])) {
+						var filteredArray = [];
+						_.each(self.attrs[k], function(item) {
+							if (item instanceof Model && item.get("_id")) {
+								filteredArray.push(item.get("_id"))
+							} else {
+								filteredArray.push(item);
+							}
+						});
+						data[k] = filteredArray;
+					}
 				}
 			} else {
 				if (options.defaults !== undefined) {

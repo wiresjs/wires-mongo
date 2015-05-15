@@ -40,6 +40,12 @@ module.exports = TesModel = Model.extend({
 		},
 		email: {},
 		password: {},
+		model_reference: {
+			reference: true
+		},
+		just_string: {
+
+		}
 	},
 	projections: {
 		user: ["name", "email", {
