@@ -41,4 +41,22 @@ describe('Ensure string id will be converted to mongo id', function() {
 		});
 	});
 
+	it('Should convert array or string', function(done) {
+		var user = new TestUser({
+			name: "ivan",
+			model_reference: ["5555d4877be0283353c28467", "1555d4877be0283353c28467"]
+		});
+		user.save().then(function(newuser) {
+			var data = newuser.get("model_reference");
+			for (var item in data) {
+				var value = data[item];
+				value.should.be.an.instanceOf(ObjectID)
+			}
+
+			done();
+		}).catch(function(e) {
+			done(e)
+		});
+	});
+
 });

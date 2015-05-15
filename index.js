@@ -8,16 +8,29 @@ var resolveall = require("resolveall")
 var Model;
 
 
+var convertStringToMongoId = function(value) {
+
+	if (value.length === 24) {
+		var validMongoId = new RegExp("^[0-9a-fA-F]{24}$");
+		if (validMongoId.test(value)) {
+			try {
+				value = ObjectID.createFromHexString(value);
+			} catch (e) {}
+		}
+	}
+
+	return value;
+}
 var tryMongoId = function(value) {
 	if (_.isString(value)) {
-		if (value.length === 24) {
-			var validMongoId = new RegExp("^[0-9a-fA-F]{24}$");
-			if (validMongoId.test(value)) {
-				try {
-					return ObjectID.createFromHexString(value);
-				} catch (e) {}
+		value = convertStringToMongoId(value)
+	}
+	if (_.isArray(value)) {
+		_.each(value, function(item, index) {
+			if (_.isString(item)) {
+				value[index] = convertStringToMongoId(item)
 			}
-		}
+		});
 	}
 	return value;
 }
@@ -120,29 +133,30 @@ var ProjectionBase = EventBase.extend({
 		var data = {};
 		_.each(this.schema, function(options, k) {
 			if (self.attrs[k] !== undefined && k != "_id") {
-				// Check if it's a reference
-				if (options.reference) {
-					// And convert it to mongoid
-					data[k] = tryMongoId(self.attrs[k])
+
+
+				// try model
+				if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
+					data[k] = self.attrs[k].get("_id")
 				} else {
-					if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
-						data[k] = self.attrs[k].get("_id")
-					} else {
-						data[k] = self.attrs[k];
-					}
-					// check for array
-					if (_.isArray(self.attrs[k])) {
-						var filteredArray = [];
-						_.each(self.attrs[k], function(item) {
-							if (item instanceof Model && item.get("_id")) {
-								filteredArray.push(item.get("_id"))
-							} else {
-								filteredArray.push(item);
-							}
-						});
-						data[k] = filteredArray;
-					}
+					// Check if it's a reference
+					// And convert it to mongoid
+					data[k] = options.reference ? tryMongoId(self.attrs[k]) : self.attrs[k]
 				}
+
+				// check for array
+				if (_.isArray(self.attrs[k])) {
+					var filteredArray = [];
+					_.each(self.attrs[k], function(item) {
+						if (item instanceof Model && item.get("_id")) {
+							filteredArray.push(item.get("_id"))
+						} else {
+							filteredArray.push(item);
+						}
+					});
+					data[k] = filteredArray;
+				}
+
 			} else {
 				if (options.defaults !== undefined) {
 					data[k] = options.defaults;
