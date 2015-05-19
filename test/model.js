@@ -45,6 +45,9 @@ module.exports = TesModel = Model.extend({
 		},
 		just_string: {
 
+		},
+		nested: {
+
 		}
 	},
 	projections: {

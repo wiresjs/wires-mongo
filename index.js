@@ -593,7 +593,20 @@ module.exports = Model = DBRequest.extend({
 		this._reqParams.with[field] = model;
 		return this;
 	},
+	// Can use dot notations
 	get: function(key) {
+		if (key && key.indexOf(".") > -1) {
+			var value = this.attrs;
+			var path = key.split("\.");
+			_.each(path, function(k) {
+				if (value[k]) {
+					value = value[k];
+				} else {
+					return undefined;
+				}
+			});
+			return value;
+		}
 		return this.attrs[key];
 	},
 	// Attaches values

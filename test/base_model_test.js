@@ -31,6 +31,15 @@ describe('Basic model test', function() {
 		should.deepEqual(attrs, user.attrs);
 	});
 
+
+	it("Should get attribute by using dot notation", function() {
+		var test = new TestUser();
+		test.attrs.nested = {
+			child: true
+		}
+		test.get("nested.child").should.be.equal(true);
+	});
+
 	it('Shoud filter out attributes that are not described', function() {
 		var attrs = {
 			name: "ivan",
