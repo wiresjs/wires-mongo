@@ -295,12 +295,9 @@ var DBRequest = Query.extend({
 		var opts = opts || {};
 		return new Promise(function(resolve, reject) {
 
-			var perPage = opts.perPage || 10;
-
+			var perPage = self._getValidNumber(opts.perPage) || 10;
 			var page = self._getValidNumber(opts.page) || 1;
-
-			var range = opts.range || 10;
-
+			var range = self._getValidNumber(opts.range) || 10
 
 			return self.count().then(function(count) {
 
