@@ -40,6 +40,32 @@ describe('Ensure string id will be converted to mongo id', function() {
 			done(e)
 		});
 	});
+	it('Should go deep into an object and convert', function() {
+		var user = new TestUser();
+		user.find({
+			$and: [{
+				"items": {
+					$in: ["5555d4877be0283353c28467"]
+				}
+			}]
+		});
+
+		var inData = user._reqParams.query['$and'][0]['items']['$in'];
+		inData[0].should.be.an.instanceOf(ObjectID)
+
+	})
+	it('Should convert simple find\'s ids to mondoID', function() {
+		var user = new TestUser();
+		user.find({
+			"items": {
+				$in: ["5555d4877be0283353c28467"]
+			}
+		});
+		var inData = user._reqParams.query['items']['$in'];
+		inData[0].should.be.an.instanceOf(ObjectID)
+
+	})
+
 
 	it('Should convert array or string', function(done) {
 		var user = new TestUser({

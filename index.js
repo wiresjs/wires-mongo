@@ -9,7 +9,6 @@ var Model;
 
 
 var convertStringToMongoId = function(value) {
-
 	if (value.length === 24) {
 		var validMongoId = new RegExp("^[0-9a-fA-F]{24}$");
 		if (validMongoId.test(value)) {
@@ -18,7 +17,6 @@ var convertStringToMongoId = function(value) {
 			} catch (e) {}
 		}
 	}
-
 	return value;
 }
 var tryMongoId = function(value) {
@@ -27,13 +25,18 @@ var tryMongoId = function(value) {
 	}
 	if (_.isArray(value)) {
 		_.each(value, function(item, index) {
-			if (_.isString(item)) {
-				value[index] = convertStringToMongoId(item)
-			}
+			value[index] = tryMongoId(item)
+		});
+	}
+	if (_.isPlainObject(value)) {
+		_.each(value, function(v, k) {
+			value[k] = tryMongoId(v)
 		});
 	}
 	return value;
 }
+
+
 
 var ValidationBase = Class.extend({
 	initialize: function() {},
@@ -46,6 +49,10 @@ var ValidationBase = Class.extend({
 	_queryValue: function(key, value) {
 		if (value instanceof Model) {
 			return value.get("_id");
+		}
+		// Deep conversion
+		if (_.isPlainObject(key)) {
+
 		}
 		value = tryMongoId(value);
 		return value;
