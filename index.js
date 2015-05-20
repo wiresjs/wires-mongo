@@ -5,6 +5,7 @@ var Promise = require("promise");
 var logger = require("log4js").getLogger("model");
 var ObjectID = require('mongodb').ObjectID;
 var resolveall = require("resolveall")
+var pagination = require("pagination");
 var Model;
 
 
@@ -287,6 +288,44 @@ var DBRequest = Query.extend({
 					}
 				});
 			}).catch(reject);
+		});
+	},
+	paginate: function(opts) {
+		var self = this;
+		var opts = opts || {};
+		return new Promise(function(resolve, reject) {
+
+			var perPage = opts.perPage || 10;
+
+			var page = self._getValidNumber(opts.page) || 1;
+
+			var range = opts.range || 10;
+
+
+			return self.count().then(function(count) {
+
+				// Modifying the query
+				self.skip((page - 1) * perPage);
+				self.limit(perPage)
+				return count;
+			}).then(function(count) {
+
+				var paginator = pagination.create('search', {
+					prelink: '/',
+					current: page,
+					rowsPerPage: perPage,
+					pageLinks: range,
+					totalResult: count
+				});
+
+				self.all().then(function(models) {
+					var output = {
+						paginator: paginator.getPaginationData(),
+						items: models
+					}
+					return resolve(output)
+				});
+			})
 		});
 	},
 	// Dropping database
