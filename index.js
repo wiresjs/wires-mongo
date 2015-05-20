@@ -579,6 +579,28 @@ module.exports = Model = DBRequest.extend({
 			}
 		}
 	},
+	// Comparers either id of a model this the current model's id
+	equals: function(target) {
+		if (!this.attrs._id)
+			return false;
+		var id;
+		if (_.isString(target)) {
+			id = tryMongoId(target);
+		}
+		if (target instanceof Model) {
+			id = target.get("_id");
+		}
+
+		if (target instanceof ObjectID) {
+			id = target
+		}
+		// Id is not valid
+		if (!id)
+			return false;
+
+
+		return id.toString() === this.get("_id").toString();
+	},
 	mergeRequestParams: function(data) {
 		if (_.isPlainObject(data)) {
 			this._reqParams = _.merge(this._reqParams, data);
