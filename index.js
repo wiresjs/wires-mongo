@@ -314,14 +314,15 @@ var DBRequest = Query.extend({
 					pageLinks: range,
 					totalResult: count
 				});
-
-				self.all().then(function(models) {
+				return self.all().then(function(models) {
 					var output = {
 						paginator: paginator.getPaginationData(),
 						items: models
 					}
-					return resolve(output)
-				});
+					return resolve(output);
+				})
+			}).catch(function(e) {
+				return reject(e);
 			})
 		});
 	},
