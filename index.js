@@ -548,7 +548,57 @@ var DBRequest = Query.extend({
 	}
 });
 
-module.exports = Model = DBRequest.extend({
+var AccessHelpers = DBRequest.extend({
+	// Comparers either id of a model this the current model's id
+	equals: function(target) {
+		if (!this.attrs._id)
+			return false;
+		var id;
+		if (_.isString(target)) {
+			id = tryMongoId(target);
+		}
+		if (target instanceof Model) {
+			id = target.get("_id");
+		}
+
+		if (target instanceof ObjectID) {
+			id = target
+		}
+		// Id is not valid
+		if (!id)
+			return false;
+
+
+		return id.toString() === this.get("_id").toString();
+	},
+	// Gives true or false depending on presence in a target array of objects
+	inArray: function(arr) {
+		if (!_.isArray(arr))
+			return false;
+		if (!this.attrs._id)
+			return false;
+		var _inArray = false;
+		_.each(arr, function(item) {
+			var id;
+			if (_.isString(item)) {
+				id = tryMongoId(item);
+			}
+			if (item instanceof Model) {
+				id = item.get("_id");
+			}
+			if (item instanceof ObjectID) {
+				id = item;
+			}
+
+			if (id && id.toString() === this.attrs._id.toString()) {
+				return _inArray = true;
+			}
+		}, this);
+		return _inArray;
+	}
+});
+
+module.exports = Model = AccessHelpers.extend({
 	initialize: function(data) {
 
 		// All user values are here
@@ -579,28 +629,7 @@ module.exports = Model = DBRequest.extend({
 			}
 		}
 	},
-	// Comparers either id of a model this the current model's id
-	equals: function(target) {
-		if (!this.attrs._id)
-			return false;
-		var id;
-		if (_.isString(target)) {
-			id = tryMongoId(target);
-		}
-		if (target instanceof Model) {
-			id = target.get("_id");
-		}
 
-		if (target instanceof ObjectID) {
-			id = target
-		}
-		// Id is not valid
-		if (!id)
-			return false;
-
-
-		return id.toString() === this.get("_id").toString();
-	},
 	mergeRequestParams: function(data) {
 		if (_.isPlainObject(data)) {
 			this._reqParams = _.merge(this._reqParams, data);
