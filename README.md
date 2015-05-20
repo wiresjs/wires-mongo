@@ -265,8 +265,8 @@ onAfterRemove: function(resolve, reject) {
 
 ### equals
 
-You can compare to modeles using "equals" method
-Passing a string will automatically convert it to mongoid and compare with the current _id
+You can compare to models by using "equals" method
+Passing a string will automatically convert it to mongoid and compare it with the current _id
 ```js
 record.equals("5555d4877be0283353c28467") // true
 record.equals(sameRecords) // true
@@ -278,7 +278,7 @@ Checks if current model is in an array. Understands array of strings, mondoIds a
 ```js
 record.inArray(["5555d4877be0283353c28467"]) // true
 record.inArray([ObjectId])// true
-record.inArray([red])// true
+record.inArray([record])// true
 ```
 
 
