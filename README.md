@@ -144,6 +144,22 @@ TestUser.find().count().then(function(num) {
 })
 ```
 
+## Paginator
+Items can be paginated. Wires-mongo uses https://www.npmjs.com/package/pagination module.
+```js
+Item.find().paginate({page: 1, perPage: 10, range : 10})
+```
+All defined options are optional.
+Returns a promise, in fact an alternative for "all" request with a small difference - The output looks like this:
+
+```js
+{
+  "paginator" : {},
+  "items" : {}
+}
+```
+
+
 ### Query with projection
 It is possible to pass a projection. Add a projection to your model's properties
 
