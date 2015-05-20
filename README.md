@@ -84,6 +84,18 @@ It is possible to constuct model with a dictionary
 var user = new User({name : "john"});
 ```
 
+You can use special getting with dot notation path
+```js
+user.get('somedict.name)
+```
+### Compare to models
+
+You can compare to modeles using "equals" method
+Passing a string will automatically convert it to mongoid and compare with the current _id
+```js
+record.equals("5555d4877be0283353c28467") // true
+record.equals(sameRecords) // true
+```
 ## Queries
 
 Find accepts native mongodb query. 
