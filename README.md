@@ -88,14 +88,7 @@ You can use special getting with dot notation path
 ```js
 user.get('somedict.name)
 ```
-### Compare to models
 
-You can compare to modeles using "equals" method
-Passing a string will automatically convert it to mongoid and compare with the current _id
-```js
-record.equals("5555d4877be0283353c28467") // true
-record.equals(sameRecords) // true
-```
 ## Queries
 
 Find accepts native mongodb query. 
@@ -267,6 +260,26 @@ onAfterRemove: function(resolve, reject) {
 ```
 
 
+
+## Access helpers
+
+### equals
+
+You can compare to modeles using "equals" method
+Passing a string will automatically convert it to mongoid and compare with the current _id
+```js
+record.equals("5555d4877be0283353c28467") // true
+record.equals(sameRecords) // true
+```
+
+### inArray
+
+Checks if current model is in an array. Understands array of strings, mondoIds and models
+```js
+record.inArray(["5555d4877be0283353c28467"]) // true
+record.inArray([ObjectId])// true
+record.inArray([red])// true
+```
 
 
 
