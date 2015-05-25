@@ -455,7 +455,7 @@ var DBRequest = Query.extend({
 		var self = this;
 		return new Promise(function(resolve, reject) {
 			domain.require(function($db) {
-				if (process.env.DEBUG_QUERY) {
+				if (process.env.DEBUG) {
 					logger.info("QUERY FROM " + collectionName + " ->\n" + JSON.stringify(self._reqParams.query, 2, 2));
 				}
 				$db.collection(collectionName)
@@ -567,7 +567,16 @@ var DBRequest = Query.extend({
 					// Creating functions to be resolved
 				var toResolve = [];
 				_.each(ids, function(withIds, key) {
-					var filtered = _.unique(withIds)
+					var filteredString = {}
+					var filtered = [];
+					// manual filter.. lodash does not do it's job .. ()
+					_.each(withIds, function(curID) {
+						var stringID = curID.toString();
+						if (!filteredString[stringID]) {
+							filteredString[stringID] = curID
+							filtered.push(curID)
+						}
+					});
 					toResolve.push(self.resolveWithRequest.bind({
 						self: self,
 						opts: {
