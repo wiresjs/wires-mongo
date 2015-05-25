@@ -21,8 +21,16 @@ var convertStringToMongoId = function(value) {
 	return value;
 }
 var tryMongoId = function(value) {
+
+
 	if (_.isString(value)) {
 		value = convertStringToMongoId(value)
+	}
+
+	if (value instanceof Model) {
+		if (value.get("_id")) {
+			tryMongoId(value.get("_id").toString())
+		}
 	}
 	if (_.isArray(value)) {
 		_.each(value, function(item, index) {
@@ -48,15 +56,7 @@ var ValidationBase = Class.extend({
 		return this.schema[v] !== undefined;
 	},
 	_queryValue: function(key, value) {
-		if (value instanceof Model) {
-			return value.get("_id");
-		}
-		// Deep conversion
-		if (_.isPlainObject(key)) {
-
-		}
-		value = tryMongoId(value);
-		return value;
+		return tryMongoId(value);
 	},
 	_getValidNumber: function(input) {
 		if (_.isString(input)) {
@@ -456,6 +456,9 @@ var DBRequest = Query.extend({
 		var self = this;
 		return new Promise(function(resolve, reject) {
 			domain.require(function($db) {
+				if (process.env.DEBUG_QUERY) {
+					logger.info("QUERY FROM " + collectionName + " ->\n" + JSON.stringify(self._reqParams.query, 2, 2));
+				}
 				$db.collection(collectionName)
 					.find(self._reqParams.query, self._reqParams.projectionArray || {}, self._reqParams.options, function(err, cursor) {
 						if (err) {
