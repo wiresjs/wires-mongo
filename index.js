@@ -22,14 +22,13 @@ var convertStringToMongoId = function(value) {
 }
 var tryMongoId = function(value) {
 
-
 	if (_.isString(value)) {
 		value = convertStringToMongoId(value)
 	}
 
 	if (value instanceof Model) {
 		if (value.get("_id")) {
-			tryMongoId(value.get("_id").toString())
+			value = tryMongoId(value.get("_id").toString())
 		}
 	}
 	if (_.isArray(value)) {
@@ -225,10 +224,10 @@ var Query = ProjectionBase.extend({
 			this._reqParams.query[arguments[0]] = this._queryValue(arguments[0], arguments[1]);
 		} else {
 			var filteredCriteria = {}
-			_.each(arguments[0], function(value, key) {
-				filteredCriteria[key] = this._queryValue(key, value)
-			}, this);
-			this._reqParams.query = _.merge(this._reqParams.query, filteredCriteria)
+			if (_.isPlainObject(arguments[0])) {
+				var query = tryMongoId(arguments[0])
+				this._reqParams.query = _.merge(this._reqParams.query, query)
+			}
 		}
 		return this;
 	},

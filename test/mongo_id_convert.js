@@ -15,6 +15,7 @@ describe('Ensure string id will be converted to mongo id', function() {
 			logger.fatal(e.stack || e)
 		})
 	})
+
 	it('Should not convert string to object. Its just a string field', function(done) {
 		var user = new TestUser({
 			name: "ivan",
@@ -40,7 +41,7 @@ describe('Ensure string id will be converted to mongo id', function() {
 			done(e)
 		});
 	});
-	it('Should go deep into an object and convert', function() {
+	it('Should go deep into an object and convert STRING', function() {
 		var user = new TestUser();
 		user.find({
 			$and: [{
@@ -54,6 +55,34 @@ describe('Ensure string id will be converted to mongo id', function() {
 		inData[0].should.be.an.instanceOf(ObjectID)
 
 	})
+
+
+	it('Should go deep into an object and convert MODELS', function(done) {
+
+		var john = new TestUser({
+			name: "john",
+			just_string: "5555d4877be0283353c28467"
+		});
+		john.save().then(function(john) {
+			var user = new TestUser();
+			user.find({
+				$and: [{
+					"items": {
+						$in: [john]
+					}
+				}]
+			});
+
+			var inData = user._reqParams.query['$and'][0]['items']['$in'];
+			inData[0].should.be.an.instanceOf(ObjectID)
+			done();
+		})
+
+
+
+	})
+
+
 	it('Should convert simple find\'s ids to mondoID', function() {
 		var user = new TestUser();
 		user.find({
