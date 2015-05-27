@@ -115,8 +115,8 @@ var EventBase = ValidationBase.extend({
 
 /**
  * Projections
- * 
- '''js 
+ *
+ '''js
  projections: {
 	user: ["name", "email", {
 		images: {
@@ -130,7 +130,7 @@ var EventBase = ValidationBase.extend({
 '''
  * Sets defined projections.
  * user.projection("others");
- * 
+ *
  */
 var ProjectionBase = EventBase.extend({
 	initialize: function() {},
@@ -268,7 +268,7 @@ var DBRequest = Query.extend({
 	initialize: function() {},
 
 	// Returns collection names
-	// Strips out database name and return 
+	// Strips out database name and return
 	getCollectionNames: function() {
 		return new Promise(function(resolve, reject) {
 			domain.require(function($db) {
@@ -459,7 +459,8 @@ var DBRequest = Query.extend({
 					logger.info("QUERY FROM " + collectionName + " ->\n" + JSON.stringify(self._reqParams.query, 2, 2));
 				}
 				$db.collection(collectionName)
-					.find(self._reqParams.query, self._reqParams.projectionArray || {}, self._reqParams.options, function(err, cursor) {
+					.find(self._reqParams.query, self._reqParams.projectionArray || {}, self._reqParams.options, function(err,
+						cursor) {
 						if (err) {
 							return reject(err);
 						}
@@ -677,7 +678,10 @@ module.exports = Model = AccessHelpers.extend({
 			}
 		}
 	},
-
+	newInstance: function(args) {
+		var Parent = this.constructor();
+		return new Parent(args);
+	},
 	mergeRequestParams: function(data) {
 		if (_.isPlainObject(data)) {
 			this._reqParams = _.merge(this._reqParams, data);
