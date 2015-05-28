@@ -689,9 +689,6 @@ module.exports = Model = AccessHelpers.extend({
 		return this;
 	},
 	onAttributeSet: function(key, value) {
-		if (value instanceof Model) {
-			return value.get("_id");
-		}
 		return value;
 	},
 	_setAttribute: function(k, v) {
@@ -703,20 +700,33 @@ module.exports = Model = AccessHelpers.extend({
 		this._reqParams.with[field] = model;
 		return this;
 	},
+	getStringId: function() {
+		if (this.attrs._id) {
+			return this.attrs._id.toString();
+		}
+		return "";
+	},
 	// Can use dot notations
 	get: function(key) {
 		if (key && key.indexOf(".") > -1) {
 			var value = this.attrs;
 			var path = key.split("\.");
 			_.each(path, function(k) {
-				if (value[k]) {
-					value = value[k];
+				if (value[k] !== undefined) {
+					if (value[k] instanceof Model) {
+						value = value[k].attrs;
+					} else {
+						value = value[k];
+					}
 				} else {
-					return undefined;
+					value = undefined
+					return false;
+
 				}
 			});
 			return value;
 		}
+
 		return this.attrs[key];
 	},
 	// Attaches values

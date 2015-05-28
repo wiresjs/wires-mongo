@@ -12,7 +12,7 @@ Wires Mongo is a simple ORM for mongodb. It uses native mongodb driver and does 
   * Schema with auto validations
   * Simple but powerful API
   * Good test coverage with comprehensive examples
-  
+
 
 ## Installation
 
@@ -84,14 +84,15 @@ It is possible to constuct model with a dictionary
 var user = new User({name : "john"});
 ```
 
-You can use special getting with dot notation path
+You can use dot notation to get particular object
+
 ```js
-user.get('somedict.name)
+user.get('somedict.name')
 ```
 
 ## Queries
 
-Find accepts native mongodb query. 
+Find accepts native mongodb query.
 
 ```js
 TestUser.find({name : "john"}).first().then(function(model) {
@@ -118,7 +119,7 @@ You can use either first() or all() for performing mongodb request
 
 ## With/Join
 
-It is possible to automatically fetch referenced items. 
+It is possible to automatically fetch referenced items.
 Let's say, we have a record Item, that has a reference "current_tag" that is a model "Tag"
 
 ```js
@@ -130,7 +131,7 @@ Instead of getting ObjectId as a result, activerecord will collect all ids that 
 Item.find().with("tags", Tag)
 ```
 
-See [with-query tests](wiresjs/wires-mongo/blob/master/test/with-query.js) for better understanding			
+See [with-query tests](wiresjs/wires-mongo/blob/master/test/with-query.js) for better understanding
 
 
 
@@ -255,7 +256,7 @@ user.remove().then(function(response) {
 })
 ```
 
-You can also remove all found records. No instance required. However, we will create instance per found item and perform "remove" on it. 
+You can also remove all found records. No instance required. However, we will create instance per found item and perform "remove" on it.
 
 ```js
 new User().find({name : /test/}).removeAll();
@@ -296,7 +297,3 @@ record.inArray(["5555d4877be0283353c28467"]) // true
 record.inArray([ObjectId])// true
 record.inArray([record])// true
 ```
-
-
-
-
