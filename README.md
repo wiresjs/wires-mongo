@@ -262,6 +262,35 @@ You can also remove all found records. No instance required. However, we will cr
 new User().find({name : /test/}).removeAll();
 ```
 
+## Cascade remove
+
+Reference can be automatically removed. Add this property to a model
+
+```js
+cascade_remove: ['@exclude Blog.tags'],
+```
+Several directive can be applied
+
+### @exclude
+```js
+cascade_remove: ['@exclude Blog.tags'],
+```
+Exludes id from the list (in the example it's "tags" from the Blog model
+
+### @remove
+```js
+cascade_remove: ['@remove Blog.item'],
+```
+
+Searches for records that match Blog.item == self._id and removes them
+
+### @nullify
+```js
+cascade_remove: ['@nullify Blog.someother_tag'],
+```
+
+Sets records to null
+
 ### Events on remove
 
 Put these method into your model. Throw any exception or reject!
