@@ -50,6 +50,10 @@ module.exports = TesModel = Model.extend({
 
 		}
 	},
+	cascade_remove: [{
+		Blog: '@record blog',
+		SomeOther: '@listitem blogs'
+	}],
 	projections: {
 		user: ["name", "email", {
 			images: {

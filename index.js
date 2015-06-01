@@ -110,7 +110,74 @@ var EventBase = ValidationBase.extend({
 	},
 	onCreateSuccess: function() {
 
-	}
+	},
+	onCascadeRemove: function(resolve, reject) {
+		var self = this;
+		var id = this.get('_id');
+
+		if (this.cascade_remove) {
+
+			domain.each(self.cascade_remove, function(path) {
+
+				var match = path.match(/^@(\w+)\s*(\w+)\.(\w+)$/);
+				if (!match) {
+					throw ({
+						status: 500,
+						message: "Cascade '" + path + "' does not conform the path rule - '@action Model.key'"
+					})
+				} else {
+					var action = match[1];
+					var model = match[2];
+					var key = match[3];
+
+					// Require model
+					return domain.require(model, function(Instance) {
+
+						// Excluding from an array
+						if (action === "exclude") {
+							var criteria = {}
+							criteria[key] = {
+								$in: [id]
+							}
+							return Instance.find(criteria).all().then(function(_records) {
+								return domain.each(_records, function(record) {
+									record.set(key, _.filter(record.get(key), function(item) {
+										return item.toString() !== id.toString();
+									}));
+									return record.save();
+								});
+							});
+						}
+						// Remove record
+						if (action === "remove") {
+							var criteria = {}
+							criteria[key] = id;
+							return Instance.find(criteria).removeAll();
+						}
+
+						if (action === "nullify") {
+							var criteria = {}
+							criteria[key] = id;
+							return Instance.find(criteria).all().then(function(_records) {
+
+								return domain.each(_records, function(_record) {
+									console.log("setting " + key)
+									return _record.set(key, null).save();
+								});
+							})
+						}
+					})
+				}
+			}).then(function() {
+				return resolve()
+			}).catch(function() {
+				return reject(e)
+			})
+
+		} else {
+			return resolve();
+		}
+	},
 });
 
 /**
@@ -407,6 +474,7 @@ var DBRequest = Query.extend({
 
 		return resolveall.chain([
 			this.onBeforeRemove,
+			this.onCascadeRemove,
 			function(resolve, reject) {
 				if (!currentId)
 					return reject("Error in collection " + collectionName + ". ID is required in remove operation")
