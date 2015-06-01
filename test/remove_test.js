@@ -47,7 +47,7 @@ describe('Removing should be okay', function() {
 			ivan.should.be.ok;
 			return ivan.remove();
 		}).then(function(response) {
-			response[1].should.be.equal(1);
+			response[2].should.be.equal(1);
 			done();
 		}).catch(function(e) {
 

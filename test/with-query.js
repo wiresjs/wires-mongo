@@ -11,6 +11,7 @@ var Item = Model.extend({
 		name: {},
 		current_tag: {},
 		tags: {},
+		freestyle: {}
 
 	}
 })
@@ -102,6 +103,17 @@ describe('With query', function() {
 				done(e);
 				logger.fatal(e.stack || e)
 			})
+	});
+
+	it('Simple "with" with freestyle callback', function(done) {
+		Item.with("freestyle", function() {
+			return Tag.find().all()
+		}).all().then(function(items) {
+			items[0].get("freestyle").length.should.greaterThan(0)
+			done()
+		}).catch(function(e) {
+			done(e)
+		})
 	});
 
 

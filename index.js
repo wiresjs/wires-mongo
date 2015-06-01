@@ -118,10 +118,16 @@ var EventBase = ValidationBase.extend({
 		if (this.cascade_remove) {
 
 			domain.each(self.cascade_remove, function(path) {
-
+				if (!_.isString(path)) {
+					return reject({
+						status: 500,
+						message: "Wrong format detected, when using cascade_remove. Expected '@action Model.key'"
+					})
+				}
 				var match = path.match(/^@(\w+)\s*(\w+)\.(\w+)$/);
 				if (!match) {
-					throw ({
+
+					return reject({
 						status: 500,
 						message: "Cascade '" + path + "' does not conform the path rule - '@action Model.key'"
 					})
@@ -161,7 +167,7 @@ var EventBase = ValidationBase.extend({
 							return Instance.find(criteria).all().then(function(_records) {
 
 								return domain.each(_records, function(_record) {
-									console.log("setting " + key)
+
 									return _record.set(key, null).save();
 								});
 							})
@@ -494,15 +500,14 @@ var DBRequest = Query.extend({
 	},
 	// Removes all records
 	removeAll: function() {
-		var fns = [];
-		var self = this;
-		return this.all().then(function(res) {
-			_.each(res, function(item) {
-				fns.push(function(resolve, reject) {
-					item.remove().then(resolve).catch(reject);
-				});
+
+
+		return this.all().then(function(items) {
+
+			return domain.each(items, function(item) {
+
+				return item.remove();
 			});
-			return resolveall.chain(fns, self);
 		});
 	},
 	count: function() {
@@ -541,44 +546,68 @@ var DBRequest = Query.extend({
 	resolveWithRequest: function(resolve, reject) {
 		var self = this.self;
 		var opts = this.opts;
+		var models = opts.models;
+		// Check if it's not a model
+		// The only way for now is to check if it has _wires_mongo_model preffix
+		if (!opts.target._wires_mongo_model) {
+			// If it's just a funcion setting results right here
 
-		// If actually model was passed
-		opts.target.find({
-			_id: {
-				$in: opts.ids
+			if (_.isFunction(opts.target)) {
+				return domain.each(models, function(model) {
+					var result = opts.target.bind(model)();
+					if (result instanceof Promise) {
+						return result.then(function(objects) {
+							model.set(opts.field, objects)
+						})
+					}
+				}).then(function() {
+					return resolve()
+				}).catch(reject)
 			}
-		}).mergeRequestParams(opts.target._reqParams).all().then(function(results) {
-			var map = {};
-			_.each(results, function(model) {
-				map[model.get("_id")] = model;
-			});
-			return resolve({
-				field: opts.field,
-				map: map
-			})
-		}).catch(reject);
+		} else {
+			// If actually model was passed
+			opts.target.find({
+				_id: {
+					$in: opts.ids
+				}
+			}).mergeRequestParams(opts.target._reqParams).all().then(function(results) {
+				var map = {};
+				_.each(results, function(model) {
+					map[model.get("_id")] = model;
+				});
+				return resolve({
+					field: opts.field,
+					map: map
+				})
+			}).catch(reject);
+		}
 	},
 	// Bind models to fields
 	// Understand and array of mongoid's
 	_bindReferences: function(models, results) {
-		_.each(models, function(item) {
+
+		_.each(models, function(item, a) {
+
 			_.each(results, function(data) {
-				var targetField = item.attrs[data.field]
-				if (targetField instanceof ObjectID) {
-					if (data.map[targetField.toString()]) {
-						// Setting a one2one records here
-						item.attrs[data.field] = data.map[targetField.toString()]
-					}
-				}
-				if (_.isArray(targetField)) {
-					var modelsArray = [];
-					_.each(targetField, function(mongoID) {
-						if (data.map[mongoID.toString()]) {
+				// Data can be null (in case of freestle callback)
+				if (data) {
+					var targetField = item.attrs[data.field]
+					if (targetField instanceof ObjectID) {
+						if (data.map[targetField.toString()]) {
 							// Setting a one2one records here
-							modelsArray.push(data.map[mongoID.toString()]);
+							item.attrs[data.field] = data.map[targetField.toString()]
 						}
-					});
-					item.attrs[data.field] = modelsArray;
+					}
+					if (_.isArray(targetField)) {
+						var modelsArray = [];
+						_.each(targetField, function(mongoID) {
+							if (data.map[mongoID.toString()]) {
+								// Setting a one2one records here
+								modelsArray.push(data.map[mongoID.toString()]);
+							}
+						});
+						item.attrs[data.field] = modelsArray;
+					}
 				}
 			});
 		});
@@ -651,6 +680,7 @@ var DBRequest = Query.extend({
 						opts: {
 							field: key,
 							ids: filtered,
+							models: models,
 							target: self._reqParams.with[key]
 						}
 					}))
@@ -822,6 +852,7 @@ module.exports = Model = AccessHelpers.extend({
 		return values;
 	}
 }, {
+	_wires_mongo_model: true,
 	with: function() {
 		var instance = new this();
 		return instance.with.apply(instance, arguments)

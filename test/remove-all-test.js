@@ -38,15 +38,22 @@ describe('Remove All', function() {
 		new TestUser().find().count().then(function(count) {
 			count.should.be.equal(2);
 			done();
-		});
+		}).catch(function(e) {
+			done(e)
+		})
 	});
 
 
 	it('Removing all data', function(done) {
-		new TestUser().find().removeAll().then(function(data) {
+
+		TestUser.find().removeAll().then(function(data) {
+
 			data.length.should.be.equal(2)
 			done();
-		});
+		}).catch(function(e) {
+			console.log("Some error")
+			done(e)
+		})
 	});
 
 	it('Count should be zero after deletion', function(done) {
