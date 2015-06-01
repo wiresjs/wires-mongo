@@ -285,11 +285,12 @@ cascade_remove: ['@remove Blog.item'],
 Searches for records that match Blog.item == self._id and removes them
 
 ### @nullify
+
 ```js
 cascade_remove: ['@nullify Blog.someother_tag'],
 ```
 
-Sets records to null
+Sets Blog.someother_tag to null
 
 ### Events on remove
 
