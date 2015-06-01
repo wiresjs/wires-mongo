@@ -850,7 +850,8 @@ module.exports = Model = AccessHelpers.extend({
 			}
 		})
 		return values;
-	}
+	},
+	_wires_mongo_model: true,
 }, {
 	_wires_mongo_model: true,
 	with: function() {
