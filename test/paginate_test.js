@@ -57,21 +57,20 @@ describe('Equals test', function() {
 		})
 	})
 
-	it("Should go to a second page", function(done) {
-		/*
-		
-		{ prelink: '/',
-  current: 2,
-  previous: 1,
-  next: 3,
-  first: 1,
-  last: 12,
-  range: [ 1, 2, 3, 4, 5 ],
-  fromResult: 12,
-  toResult: 22,
-  totalResult: 125,
-  pageCount: 12 }
-		 */
+
+	it("Should filter stuff", function(done) {
+		Item.find().filter(function() {
+			return this.get('name') === "Item 1";
+		}).all().then(function(results) {
+			results.length.should.be.equal(1)
+			done();
+		}).catch(function(e) {
+			done(e)
+		})
+	})
+
+	it("Should go to the second page", function(done) {
+
 		Item.find().paginate({
 			page: 2,
 			perPage: 11,

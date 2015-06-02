@@ -327,3 +327,15 @@ record.inArray(["5555d4877be0283353c28467"]) // true
 record.inArray([ObjectId])// true
 record.inArray([record])// true
 ```
+
+### filter
+Allows you to filter your results before resolving the promise
+
+```js
+Item.find().filter(function() {
+   return this.get('name') === "Item 1";
+}).all().then(function(results) {
+   results.length.should.be.equal(1)
+   done();
+})
+```

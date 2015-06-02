@@ -637,6 +637,20 @@ var DBRequest = Query.extend({
 		});
 		return ids;
 	},
+	filterResults: function(models) {
+		var self = this;
+		return new Promise(function(resolve, reject) {
+
+			if (_.isFunction(self._filter_callback)) {
+				var filteredModels = _.filter(models, function(m) {
+					return self._filter_callback.bind(m)();
+				});
+				return resolve(filteredModels);
+			} else {
+				return resolve(models);
+			}
+		})
+	},
 	dbRequest: function(cb) {
 		var self = this;
 		var Parent = this.constructor;
@@ -650,8 +664,7 @@ var DBRequest = Query.extend({
 					_.each(docs, function(item) {
 						models.push(new Parent(item));
 					});
-					return resolve(models);
-					//return self.resolveWithStatements(models, resolve, reject);
+					return resolve(self.filterResults(models))
 				});
 			}).catch(reject);
 		}).then(function(models) {
@@ -659,7 +672,7 @@ var DBRequest = Query.extend({
 			// Resolving with statements
 			return new Promise(function(resolve, reject) {
 				if (Object.keys(self._reqParams.with).length === 0) {
-					return resolve(models);
+					return resolve(self.filterResults(models))
 				}
 				var ids = self._extractIdsFromReferences(models)
 					// Creating functions to be resolved
@@ -687,7 +700,7 @@ var DBRequest = Query.extend({
 				});
 				resolveall.chain(toResolve).then(function(results) {
 					self._bindReferences(models, results);
-					return resolve(models)
+					return resolve(self.filterResults(models))
 
 				}).catch(reject);
 			});
@@ -717,6 +730,10 @@ var AccessHelpers = DBRequest.extend({
 
 
 		return id.toString() === this.get("_id").toString();
+	},
+	filter: function(cb) {
+		this._filter_callback = cb;
+		return this;
 	},
 	// Gives true or false depending on presence in a target array of objects
 	inArray: function(arr) {
