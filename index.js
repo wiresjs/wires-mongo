@@ -213,33 +213,34 @@ var ProjectionBase = EventBase.extend({
 		var data = {};
 		_.each(this.schema, function(options, k) {
 			if (self.attrs[k] !== undefined && k != "_id") {
+				if (!options.ignore) {
 
+					// try model
+					if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
+						data[k] = self.attrs[k].get("_id")
+					} else {
+						// Check if it's a reference
+						// And convert it to mongoid
+						data[k] = options.reference ? tryMongoId(self.attrs[k]) : self.attrs[k]
+					}
 
-				// try model
-				if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
-					data[k] = self.attrs[k].get("_id")
+					// check for array
+					if (_.isArray(self.attrs[k])) {
+						var filteredArray = [];
+						_.each(self.attrs[k], function(item) {
+							if (item instanceof Model && item.get("_id")) {
+								filteredArray.push(item.get("_id"))
+							} else {
+								filteredArray.push(item);
+							}
+						});
+						data[k] = filteredArray;
+					}
+
 				} else {
-					// Check if it's a reference
-					// And convert it to mongoid
-					data[k] = options.reference ? tryMongoId(self.attrs[k]) : self.attrs[k]
-				}
-
-				// check for array
-				if (_.isArray(self.attrs[k])) {
-					var filteredArray = [];
-					_.each(self.attrs[k], function(item) {
-						if (item instanceof Model && item.get("_id")) {
-							filteredArray.push(item.get("_id"))
-						} else {
-							filteredArray.push(item);
-						}
-					});
-					data[k] = filteredArray;
-				}
-
-			} else {
-				if (options.defaults !== undefined) {
-					data[k] = options.defaults;
+					if (options.defaults !== undefined) {
+						data[k] = options.defaults;
+					}
 				}
 			}
 		}, this);
