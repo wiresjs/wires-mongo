@@ -105,6 +105,20 @@ describe('With query', function() {
 			})
 	});
 
+	it("Should filter stuff", function(done) {
+		Item.find().with("current_tag", Tag).filter(function() {
+
+
+			return this.get("current_tag.name");
+		}).all().then(function(results) {
+			results.length.should.be.equal(1)
+			done();
+		}).catch(function(e) {
+			done(e)
+		})
+	})
+
+
 	it('Simple "with" with freestyle callback', function(done) {
 		Item.with("freestyle", function() {
 			return Tag.find().all()

@@ -641,7 +641,7 @@ var DBRequest = Query.extend({
 		var self = this;
 		return new Promise(function(resolve, reject) {
 
-			if (_.isFunction(self._filter_callback)) {
+			if (self._filter_callback !== undefined && _.isFunction(self._filter_callback)) {
 				var filteredModels = _.filter(models, function(m) {
 					return self._filter_callback.bind(m)();
 				});
@@ -664,7 +664,7 @@ var DBRequest = Query.extend({
 					_.each(docs, function(item) {
 						models.push(new Parent(item));
 					});
-					return resolve(self.filterResults(models))
+					return resolve(models)
 				});
 			}).catch(reject);
 		}).then(function(models) {
@@ -700,6 +700,7 @@ var DBRequest = Query.extend({
 				});
 				resolveall.chain(toResolve).then(function(results) {
 					self._bindReferences(models, results);
+
 					return resolve(self.filterResults(models))
 
 				}).catch(reject);

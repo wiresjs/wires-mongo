@@ -53,7 +53,7 @@ describe('Equals test', function() {
 			output.items.length.should.be.equal(11)
 			done();
 		}).catch(function(e) {
-			done(e)
+			done(e)v
 		})
 	})
 
