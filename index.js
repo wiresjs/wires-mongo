@@ -212,9 +212,10 @@ var ProjectionBase = EventBase.extend({
 		var self = this;
 		var data = {};
 		_.each(this.schema, function(options, k) {
-			if (self.attrs[k] !== undefined && k != "_id") {
-				if (!options.ignore) {
 
+			if (self.attrs[k] !== undefined && k != "_id") {
+
+				if (!options.ignore) {
 					// try model
 					if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
 						data[k] = self.attrs[k].get("_id")
@@ -236,11 +237,10 @@ var ProjectionBase = EventBase.extend({
 						});
 						data[k] = filteredArray;
 					}
-
-				} else {
-					if (options.defaults !== undefined) {
-						data[k] = options.defaults;
-					}
+				}
+			} else {
+				if (options.defaults !== undefined) {
+					data[k] = options.defaults;
 				}
 			}
 		}, this);
