@@ -244,6 +244,11 @@ var ProjectionBase = EventBase.extend({
 				}
 			}
 		}, this);
+
+		// Checking for forced id
+		if (this._forced_id !== undefined) {
+			data._id = tryMongoId(this._forced_id);
+		}
 		return data;
 	},
 	// Sets appropriate projection
@@ -412,13 +417,17 @@ var DBRequest = Query.extend({
 
 		})
 	},
+	// Setting custom id
+	forceId: function(id) {
+		this._forced_id = id;
+	},
 	// Saves data
 	// Should check for _id. If it is there, then it's and update
 	// if not - insert
 	save: function() {
 		var self = this;
 
-		var isNewRecord = !this.attrs._id;
+		var isNewRecord = !this._existing_record_id;
 		var self = this;
 
 
@@ -433,26 +442,38 @@ var DBRequest = Query.extend({
 			return new Promise(function(resolve, reject) {
 				domain.require(function($db) {
 					if (isNewRecord) {
+
 						$db.collection(self.collectionName).insert(doc, {
 							new: 1
 						}, function(err, records) {
 							if (err) {
 								return reject(err);
 							}
+							self._existing_record_id = records[0]._id;
 							self.set(records[0]);
 							return resolve(self)
 						});
 					} else {
+						// Removing _id
+						delete doc._id;
+
+						var op = {
+								$set: doc
+							}
+							// Unsetting fields if necessary
+						if (Object.keys(self._unset).length > 0) {
+							op["$unset"] = self._unset;
+						}
+
 						$db.collection(self.collectionName).findAndModify({
-							_id: self.attrs._id
-						}, [], {
-							$set: doc
-						}, {
+							_id: self._existing_record_id
+						}, [], op, {
 							new: 1
 						}, function(e, doc) {
 							if (e) {
 								return reject(e)
 							}
+
 							self.set(doc);
 							return resolve(self);
 						});
@@ -663,7 +684,9 @@ var DBRequest = Query.extend({
 					}
 					var models = [];
 					_.each(docs, function(item) {
-						models.push(new Parent(item));
+						var record = new Parent(item);
+						record._existing_record_id = item._id;
+						models.push(record);
 					});
 					return resolve(models)
 				});
@@ -769,6 +792,8 @@ module.exports = Model = AccessHelpers.extend({
 
 		// All user values are here
 		this.attrs = {}
+		this._unset = {};
+
 		this.schema = this.constructor.prototype.schema;
 		this.collectionName = this.constructor.prototype.collection || null;
 
@@ -845,6 +870,13 @@ module.exports = Model = AccessHelpers.extend({
 		}
 
 		return this.attrs[key];
+	},
+	unset: function() {
+		var fields = _.flatten(arguments);
+		_.each(fields, function(field) {
+			this.set(field, undefined);
+			this._unset[field] = true;
+		}, this)
 	},
 	// Attaches values
 	set: function(key, value) {

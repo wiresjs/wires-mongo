@@ -67,7 +67,7 @@ var = Model.extend({
 })
 ```
 
-## Attributes
+## Set Attributes
 
 All attributes are stored in "attrs" dictionary. Attribute will be ignored in case of missing in schema.
 To set an attribute, use
@@ -89,6 +89,18 @@ You can use dot notation to get particular object
 ```js
 user.get('somedict.name')
 ```
+## Unset attribute
+
+Use "unset" to remove attribute(s) from the database
+
+```js
+item.unset('name')
+item.unset('email', 'pass')
+item.unset('email', 'pass', ['other_field', 'something_else'])
+```
+
+You can pass arguments or lists (they will be flattened). You should call "save" to perform the operation.
+
 
 ## Queries
 

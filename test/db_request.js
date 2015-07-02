@@ -67,8 +67,8 @@ describe('Model db queries', function() {
 		user.find("name", "ivan").first().then(function(model) {
 
 			model.set("name", "pekka");
-			model.save().then(function() {
-				model.attrs.name.should.be.equal("pekka");
+			model.save().then(function(record) {
+				record.attrs.name.should.be.equal("pekka");
 				done();
 			}).catch(function(e) {
 				logger.fatal(e.stack || e)
