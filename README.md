@@ -95,11 +95,13 @@ It is possible to constuct model with a dictionary
 var user = new User({name : "john"});
 ```
 
-You can use dot notation to get particular object
+You can use dot notation to get a particular object
 
 ```js
 user.get('somedict.name')
+user.get('somelist.0.name')
 ```
+
 ## Unset attribute
 
 Use "unset" to remove attribute(s) from the database

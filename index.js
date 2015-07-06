@@ -934,16 +934,25 @@ module.exports = Model = AccessHelpers.extend({
 			var value = this.attrs;
 			var path = key.split("\.");
 			_.each(path, function(k) {
-				if (value[k] !== undefined) {
-					if (value[k] instanceof Model) {
-						value = value[k].attrs;
-					} else {
-						value = value[k];
+				// check for array
+				if (k.match(/^\d+$/)) {
+					if (_.isArray(value)) {
+						var pos = k * 1;
+						if (value[pos]) {
+							value = value[pos]
+						}
 					}
 				} else {
-					value = undefined
-					return false;
-
+					if (value[k] !== undefined) {
+						if (value[k] instanceof Model) {
+							value = value[k].attrs;
+						} else {
+							value = value[k];
+						}
+					} else {
+						value = undefined
+						return false;
+					}
 				}
 			});
 			return value;

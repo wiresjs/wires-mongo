@@ -67,13 +67,13 @@ describe('Unset test', function() {
          done();
       }).catch(done)
    });
-   /*
-      it("Should jsontify with nested array", function(done) {
-         Item.find().with("tags", Tag).all().then(function(items) {
-            items.$toJSON()[0].tags[0].name.should.be.equal("123");
-            done();
-         }).catch(done)
-      });*/
+
+   it("Should jsontify with nested array", function(done) {
+      Item.find().with("tags", Tag).all().then(function(items) {
+         items.$toJSON()[0].tags[0].name.should.be.equal("123");
+         done();
+      }).catch(done)
+   });
 
 
 });
