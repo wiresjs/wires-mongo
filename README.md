@@ -145,8 +145,23 @@ Item.find().with("tags", Tag)
 
 See [with-query tests](wiresjs/wires-mongo/blob/master/test/with-query.js) for better understanding
 
+### Required record
 
+Record can automatically be reject if not found. Apply "required()" to your query
+```js
+Item.find({name : "test"}).required().then(function(){
 
+}).catch(function(error){
+
+});
+```
+if one of the "with" queries has a "required" parameter, entire promise will be rejected as well.
+
+You can pass a custom message if needed
+
+```js
+Item.find({name : "test"}).required("This record is very important")
+```
 
 ## Count
 

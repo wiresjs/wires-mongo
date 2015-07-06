@@ -44,6 +44,20 @@ var tryMongoId = function(value) {
 	return value;
 }
 
+/*
+var _uniqueArray = function(list){
+	_.each(list, function(item){
+
+	})
+	var modelsArray = [];
+	_.each(targetField, function(mongoID) {
+		if (data.map[mongoID.toString()]) {
+			// Setting a one2one records here
+			modelsArray.push(data.map[mongoID.toString()]);
+		}
+	});
+}
+*/
 
 
 var ValidationBase = Class.extend({
@@ -661,8 +675,9 @@ var DBRequest = Query.extend({
 	},
 	filterResults: function(models) {
 		var self = this;
-		return new Promise(function(resolve, reject) {
 
+
+		return new Promise(function(resolve, reject) {
 			if (self._filter_callback !== undefined && _.isFunction(self._filter_callback)) {
 				var filteredModels = _.filter(models, function(m) {
 					return self._filter_callback.bind(m)();
@@ -673,6 +688,12 @@ var DBRequest = Query.extend({
 			}
 		})
 	},
+	required: function(isRequired, rejectionMessage) {
+		this._recordRequired = isRequired !== undefined ? isRequired : true;
+		this._rejectionMessage = rejectionMessage;
+
+		return this;
+	},
 	dbRequest: function(cb) {
 		var self = this;
 		var Parent = this.constructor;
@@ -681,6 +702,15 @@ var DBRequest = Query.extend({
 				cursor.toArray(function(e, docs) {
 					if (e) {
 						return reject(e);
+					}
+					// Check for rejection (if record is required and nothing to show, reject)
+					if (docs.length === 0 && self._recordRequired) {
+
+						return reject({
+							status: 404,
+							message: self._rejectionMessage ? self._rejectionMessage : (_.isString(self._recordRequired) ? self._recordRequired :
+								"Record is required")
+						})
 					}
 					var models = [];
 					_.each(docs, function(item) {
@@ -912,6 +942,14 @@ module.exports = Model = AccessHelpers.extend({
 	find: function() {
 		var instance = new this();
 		return instance.find.apply(instance, arguments)
+	},
+	required: function() {
+		var instance = new this();
+		return instance.required.apply(instance, arguments)
+	},
+	projection: function() {
+		var instance = new this();
+		return instance.projection.apply(instance, arguments)
 	},
 	drop: function() {
 		var instance = new this();
