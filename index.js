@@ -745,7 +745,6 @@ var DBRequest = Query.extend({
 					}
 					// Check for rejection (if record is required and nothing to show, reject)
 					if (docs.length === 0 && self._recordRequired) {
-
 						return reject({
 							status: 404,
 							message: self._rejectionMessage ? self._rejectionMessage : (_.isString(self._recordRequired) ? self._recordRequired :
@@ -758,6 +757,10 @@ var DBRequest = Query.extend({
 						record._existing_record_id = item._id;
 						models.push(record);
 					});
+					// Attaching .$toJson
+					models.$toJSON = function() {
+						return self.arrayToJSON(models);
+					}
 					return resolve(models)
 				});
 			}).catch(reject);
@@ -829,6 +832,14 @@ var AccessHelpers = DBRequest.extend({
 	filter: function(cb) {
 		this._filter_callback = cb;
 		return this;
+	},
+	arrayToJSON: function(models) {
+		var jsonList = []
+		_.each(models, function(item) {
+			jsonList.push(item.toJSON())
+		})
+
+		return jsonList;
 	},
 	// Gives true or false depending on presence in a target array of objects
 	inArray: function(arr) {
@@ -967,7 +978,12 @@ module.exports = Model = AccessHelpers.extend({
 		var self = this;
 		_.each(schema, function(params, name) {
 			if (!params.hidden) {
-				values[name] = self.attrs[name];
+				var v = self.attrs[name];
+				if (_.isArray(v)) {
+					values[name] = self.arrayToJSON(v);
+				} else {
+					values[name] = self.attrs[name];
+				}
 			}
 		})
 		return values;

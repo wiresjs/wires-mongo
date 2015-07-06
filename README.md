@@ -391,3 +391,13 @@ Item.find().filter(function() {
    done();
 })
 ```
+
+### toJSON
+When all() is called, list is being prototyped with $toJSON method, that will recursively serialize all objects
+```js
+Item.find().all().then(function(results) {
+   results.$toJSON()
+})
+```
+
+On top of of that each model has "toJSON" method
