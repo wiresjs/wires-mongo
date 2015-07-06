@@ -979,10 +979,13 @@ module.exports = Model = AccessHelpers.extend({
 			if (!params.hidden) {
 				var v = self.attrs[name];
 				if (_.isArray(v)) {
-					values[name] = self.arrayToJSON(v);
+					v = self.arrayToJSON(v);
 				} else {
-					values[name] = self.attrs[name];
+					if (v instanceof Model) {
+						v = v.toJSON();
+					}
 				}
+				values[name] = v;
 			}
 		})
 		return values;
