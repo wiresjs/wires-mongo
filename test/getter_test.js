@@ -16,6 +16,9 @@ describe('Removing should be okay', function() {
          nested: {},
          somelist: {},
          somelist: {},
+         somemodelList: {
+            reference: true
+         },
          model_reference: {
             reference: true,
             unique: true
@@ -32,6 +35,11 @@ describe('Removing should be okay', function() {
          somelist: [{
             name: "pukka"
          }],
+         somemodelList: [
+            new TestUser({
+               name: 'John'
+            })
+         ],
          model_reference: new TestUser({
             name: 'John'
          })
@@ -56,8 +64,12 @@ describe('Removing should be okay', function() {
    it('It should be valid with nested model', function() {
       user.get('model_reference.name').should.be.equal("John")
    });
-   it('It should get first item from an array', function() {
+   it('It should get first item from an array (simple objects)', function() {
       user.get('somelist.0.name').should.be.equal("pukka")
+   });
+
+   it('It should get first item from an array (models)', function() {
+      user.get('somemodelList.0.name').should.be.equal("John")
    });
    it('It should get second item from an array and return undefined', function() {
       should.equal(user.get('somelist.2.name'), undefined)

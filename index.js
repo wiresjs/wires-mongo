@@ -940,6 +940,9 @@ module.exports = Model = AccessHelpers.extend({
 						var pos = k * 1;
 						if (value[pos]) {
 							value = value[pos]
+							if (value instanceof Model) {
+								value = value.attrs;
+							}
 						}
 					}
 				} else {
