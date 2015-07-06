@@ -8,6 +8,8 @@ var _ = require('lodash');
 describe('String ID to MongoDBid conversion', function() {
 
 	var stringID;
+	var mongoID;
+	var testUser;
 	before(function(done) {
 		var user = new TestUser();
 		user.drop().then(function(data) {
@@ -23,6 +25,8 @@ describe('String ID to MongoDBid conversion', function() {
 		});
 		user.save().then(function(user) {
 			stringID = user.attrs._id.toString();
+			testUser = user;
+			mongoID = user.get("_id");
 			done();
 		}).catch(function(e) {
 			logger.fatal(e.stack || e)
@@ -43,6 +47,33 @@ describe('String ID to MongoDBid conversion', function() {
 			logger.fatal(e.stack || e)
 			done(e)
 		})
+	});
+
+	it('Should find a record using "find" with string first argument', function(done) {
+
+		TestUser.find(stringID).first().then(function(user) {
+			user.attrs.name.should.be.equal("test")
+			done();
+		}).catch(done)
+	});
+
+	it('Should not apply search by id, if first argument is not a valid mongo id ', function() {
+		var cr = TestUser.find('some bullshi');
+		Object.keys(cr._reqParams.query).length.should.be.equal(0)
+	});
+
+	it('Should find a record using "find" with mongoid first argument', function(done) {
+		TestUser.find(mongoID).first().then(function(user) {
+			user.attrs.name.should.be.equal("test")
+			done();
+		}).catch(done)
+	});
+
+	it('Should find a record using "find" with first argument (as model)', function(done) {
+		TestUser.find(testUser).first().then(function(user) {
+			user.attrs.name.should.be.equal("test")
+			done();
+		}).catch(done)
 	});
 
 	it('Should find a record using find', function(done) {

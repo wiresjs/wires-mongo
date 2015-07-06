@@ -9,14 +9,21 @@ var pagination = require("pagination");
 var Model;
 
 
-var convertStringToMongoId = function(value) {
+var getMongoIdFromString = function(value) {
 	if (value.length === 24) {
 		var validMongoId = new RegExp("^[0-9a-fA-F]{24}$");
 		if (validMongoId.test(value)) {
 			try {
-				value = ObjectID.createFromHexString(value);
+				return ObjectID.createFromHexString(value);
 			} catch (e) {}
 		}
+	}
+	return null;
+}
+var convertStringToMongoId = function(value) {
+	var v = getMongoIdFromString(value)
+	if (v) {
+		value = v;
 	}
 	return value;
 }
@@ -44,20 +51,25 @@ var tryMongoId = function(value) {
 	return value;
 }
 
-/*
-var _uniqueArray = function(list){
-	_.each(list, function(item){
 
-	})
-	var modelsArray = [];
-	_.each(targetField, function(mongoID) {
-		if (data.map[mongoID.toString()]) {
-			// Setting a one2one records here
-			modelsArray.push(data.map[mongoID.toString()]);
+var _uniqueArray = function(list) {
+	var newlist = [];
+	var storage = {};
+	_.each(list, function(item) {
+		if (item !== undefined) {
+			if (item instanceof Model) {
+				item = item.get("_id");
+			}
+			if (!storage[item.toString()]) {
+				storage[item.toString()] = 1;
+				newlist.push(item)
+			}
 		}
 	});
+
+	return newlist;
 }
-*/
+
 
 
 var ValidationBase = Class.extend({
@@ -249,6 +261,10 @@ var ProjectionBase = EventBase.extend({
 								filteredArray.push(item);
 							}
 						});
+						// Unique array property
+						if (options.unique) {
+							filteredArray = _uniqueArray(filteredArray)
+						}
 						data[k] = filteredArray;
 					}
 				}
@@ -312,14 +328,37 @@ var Query = ProjectionBase.extend({
 	// Defines criterion based on 2 (key, value) or 1 arguments
 	// Should a proper mongo query
 	find: function() {
-
 		if (arguments.length === 2) {
 			this._reqParams.query[arguments[0]] = this._queryValue(arguments[0], arguments[1]);
 		} else {
 			var filteredCriteria = {}
-			if (_.isPlainObject(arguments[0])) {
-				var query = tryMongoId(arguments[0])
+			var first = arguments[0];
+			if (_.isPlainObject(first)) {
+				var query = tryMongoId(first)
 				this._reqParams.query = _.merge(this._reqParams.query, query)
+			} else {
+
+				var mongo_id;
+
+				if (first !== undefined) {
+					// Checking for string mongo id
+					if (_.isString(first)) {
+						mongo_id = getMongoIdFromString(first);
+					}
+					if (first instanceof ObjectID) {
+						mongo_id = first;
+					}
+					if (first instanceof Model) {
+						if (first.get("_id")) {
+							value = tryMongoId(first.get("_id").toString())
+						}
+					}
+				}
+				if (mongo_id) {
+					this._reqParams.query = _.merge(this._reqParams.query, {
+						_id: mongo_id
+					})
+				}
 			}
 		}
 		return this;
@@ -635,6 +674,7 @@ var DBRequest = Query.extend({
 						}
 					}
 					if (_.isArray(targetField)) {
+						//2
 						var modelsArray = [];
 						_.each(targetField, function(mongoID) {
 							if (data.map[mongoID.toString()]) {

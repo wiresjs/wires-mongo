@@ -67,6 +67,17 @@ var = Model.extend({
 })
 ```
 
+## Schema parameters
+
+### required
+Saving will be rejected if one the require fields is undefined
+
+### ignore
+Means that field is settable but will be ignored when saved
+
+### unique
+Applies to arrays only. Understands mongoids, models and strings
+
 ## Set Attributes
 
 All attributes are stored in "attrs" dictionary. Attribute will be ignored in case of missing in schema.
@@ -121,13 +132,27 @@ You can also use key and value as first and second arguments to fetch something 
 TestUser.find("name", "john")
 ```
 
-Find by id
-Input string will be automatically converted to mongoObject if string detected.
+You can use either first() or all() for performing mongodb request
+
+### Find by id
+IF you use find with 1 argument, wires-mongo assumes you want to find a record by id.
+You can pass a string, model reference, or ObjectID accordingly  
+
 ```js
-TestUser.findById("mongodb id")
+TestUser.find("559a508ce147b840c4986535")
+TestUser.find(otherReference)
+TestUser.find(ObjectID("559a508ce147b840c4986535"))
+// is all the same
 ```
 
-You can use either first() or all() for performing mongodb request
+Makes a query:
+```js
+{ _id : "559a508ce147b840c4986535"}
+```
+
+(findById is deprecated)
+
+
 
 ## With/Join
 
