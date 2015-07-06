@@ -836,9 +836,8 @@ var AccessHelpers = DBRequest.extend({
 	arrayToJSON: function(models) {
 		var jsonList = []
 		_.each(models, function(item) {
-			jsonList.push(item.toJSON())
-		})
-
+			jsonList.push(item.toJSON ? item.toJSON() : item)
+		});
 		return jsonList;
 	},
 	// Gives true or false depending on presence in a target array of objects
