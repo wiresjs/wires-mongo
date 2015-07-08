@@ -107,7 +107,7 @@ Checks the minimum length of a string. Will throw an error if any object but str
 schema: {
    _id: [],
    name: {
-      minLength: true
+      minLength: 20
    }
 }
 ```
@@ -118,7 +118,7 @@ Checks the maximum length of a string. Will throw an error if any object but str
 schema: {
    _id: [],
    name: {
-      maxLength: true
+      maxLength: 5
    }
 }
 ```
