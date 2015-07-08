@@ -62,4 +62,13 @@ describe('Equals test', function() {
 		})
 	});
 
+	it('Compare with weired object (has toString())', function() {
+		var Weirdo = function() {
+			this.toString = function() {
+				return recordStringId
+			}
+		}
+		record.equals(new Weirdo()).should.be.equal(true)
+	});
+
 });

@@ -53,7 +53,6 @@ describe('Ensure string id will be converted to mongo id', function() {
 
 		var inData = user._reqParams.query['$and'][0]['items']['$in'];
 		inData[0].should.be.an.instanceOf(ObjectID)
-
 	})
 
 

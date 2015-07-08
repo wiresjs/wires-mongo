@@ -20,6 +20,8 @@ var getMongoIdFromString = function(value) {
 	}
 	return null;
 }
+
+
 var convertStringToMongoId = function(value) {
 	var v = getMongoIdFromString(value)
 	if (v) {
@@ -27,26 +29,43 @@ var convertStringToMongoId = function(value) {
 	}
 	return value;
 }
+
 var tryMongoId = function(value) {
 
-	if (_.isString(value)) {
-		value = convertStringToMongoId(value)
-	}
-
-	if (value instanceof Model) {
-		if (value.get("_id")) {
-			value = tryMongoId(value.get("_id").toString())
-		}
-	}
+	// Arrays are returned right away
 	if (_.isArray(value)) {
 		_.each(value, function(item, index) {
 			value[index] = tryMongoId(item)
 		});
+		return value;
 	}
+	// Objects are returned right away
 	if (_.isPlainObject(value)) {
 		_.each(value, function(v, k) {
 			value[k] = tryMongoId(v)
 		});
+		return value;
+	}
+	// Trying to convert a string
+	if (_.isString(value)) {
+		value = convertStringToMongoId(value);
+	}
+
+	// If it's an instance of Model -> extract _id from it
+	if (value instanceof Model) {
+		if (value.get("_id")) {
+			value = tryMongoId(value.get("_id").toString())
+		}
+		return value;
+	}
+
+	// Git it another try
+	// The last chance...
+	if (value && !(value instanceof ObjectID)) {
+		var mongo_id = getMongoIdFromString(value.toString());
+		if (mongo_id) {
+			value = mongo_id;
+		}
 	}
 	return value;
 }
@@ -383,18 +402,8 @@ var Query = ProjectionBase.extend({
 				var mongo_id;
 
 				if (first !== undefined) {
-					// Checking for string mongo id
-					if (_.isString(first)) {
-						mongo_id = getMongoIdFromString(first);
-					}
-					if (first instanceof ObjectID) {
-						mongo_id = first;
-					}
-					if (first instanceof Model) {
-						if (first.get("_id")) {
-							value = tryMongoId(first.get("_id").toString())
-						}
-					}
+					var v = tryMongoId(first);
+					mongo_id = (v instanceof ObjectID) ? v : undefined;
 				}
 				if (mongo_id) {
 					this._reqParams.query = _.merge(this._reqParams.query, {
@@ -853,23 +862,15 @@ var AccessHelpers = DBRequest.extend({
 	equals: function(target) {
 		if (!this.attrs._id)
 			return false;
-		var id;
-		if (_.isString(target)) {
-			id = tryMongoId(target);
-		}
-		if (target instanceof Model) {
-			id = target.get("_id");
-		}
 
-		if (target instanceof ObjectID) {
-			id = target
-		}
-		// Id is not valid
-		if (!id)
+		if (!target) {
 			return false;
-
-
-		return id.toString() === this.get("_id").toString();
+		}
+		var target = tryMongoId(target);
+		if (!(target instanceof ObjectID)) {
+			return false;
+		}
+		return target.toString() === this.get("_id").toString();
 	},
 	filter: function(cb) {
 		this._filter_callback = cb;
