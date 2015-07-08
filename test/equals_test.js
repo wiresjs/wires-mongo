@@ -20,6 +20,7 @@ describe('Equals test', function() {
 
 	var record;
 	var recordStringId;
+	var recordObjectId;
 	before(function(done) {
 		new Item().drop().then(function() {
 			return new Item({
@@ -28,6 +29,7 @@ describe('Equals test', function() {
 		}).then(function(item) {
 			record = item;
 			recordStringId = record.get("_id").toString();
+			recordObjectId = record.get("_id");
 			done();
 		})
 	})
@@ -41,6 +43,10 @@ describe('Equals test', function() {
 
 	it('Compare with string', function() {
 		record.equals(recordStringId).should.be.equal(true)
+	});
+
+	it('Compare with object id', function() {
+		record.equals(recordObjectId).should.be.equal(true)
 	});
 
 	it('Compare with mongo id', function() {

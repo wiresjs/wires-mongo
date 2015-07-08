@@ -98,16 +98,58 @@ var ValidationBase = Class.extend({
 		var data = {};
 		var rejectMessage;
 
+		var decline = function(message) {
+			return reject({
+				status: 400,
+				message: message
+			})
+		}
 		for (var key in this.schema) {
 			var params = this.schema[key];
 			if (_.isPlainObject(params)) {
 				var required = params.required;
 				if (_.isBoolean(required)) {
 					if (required === true && self.attrs[key] === undefined) {
-						return reject({
-							status: 400,
-							message: "Field '" + key + "' is required"
-						})
+						return decline("Field '" + key + "' is required")
+					}
+				}
+				// *************************************************
+				// Min length
+				var minLength = params.minLength;
+				if (minLength > 0) {
+
+					if (!_.isString(self.attrs[key])) {
+						return decline("Field '" + key + "' should be a string (got " + self.attrs[key])
+					}
+					var stringValue = self.attrs[key].toString();
+					if (stringValue.length < minLength) {
+						return decline("Field '" + key + "' requires at least " + minLength + " symbols");
+					}
+				}
+
+				// ************************************************
+				// Max length
+				var maxLength = params.maxLength;
+				if (maxLength > 0) {
+					if (self.attrs[key] !== undefined) {
+						if (!_.isString(self.attrs[key])) {
+							return decline("Field '" + key + "' should be a string. (got  " + self.attrs[key] + ")");
+						}
+						var stringValue = self.attrs[key].toString();
+						if (stringValue.length > maxLength) {
+							return decline("Field '" + key + "' cannot exceed " + maxLength + " symbols (got " + stringValue.length + ")");
+						}
+					}
+				}
+				// matches ***************************************
+				var regexp = params.matches;
+				if (regexp) {
+					if (!_.isString(self.attrs[key])) {
+						return decline("Field '" + key + "' should be a string")
+					}
+					var stringValue = self.attrs[key].toString();
+					if (!stringValue.match(regexp)) {
+						return decline("Field '" + key + "' is invalid");
 					}
 				}
 			}

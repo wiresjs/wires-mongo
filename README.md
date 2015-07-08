@@ -71,12 +71,68 @@ var = Model.extend({
 
 ### required
 Saving will be rejected if one the require fields is undefined
-
+```js
+schema: {
+   _id: [],
+   name: {
+      required: true
+   }
+}
+```
 ### ignore
 Means that field is settable but will be ignored when saved
+```js
+schema: {
+   _id: [],
+   name: {
+      ignore: true
+   }
+}
+```
 
 ### unique
 Applies to arrays only. Understands mongoids, models and strings
+```js
+schema: {
+   _id: [],
+   name: {
+      unique: true
+   }
+}
+```
+
+### minLength
+Checks the minimum length of a string. Will throw an error if any object but string is passed
+```js
+schema: {
+   _id: [],
+   name: {
+      minLength: true
+   }
+}
+```
+
+### maxLength
+Checks the maximum length of a string. Will throw an error if any object but string is passed
+```js
+schema: {
+   _id: [],
+   name: {
+      maxLength: true
+   }
+}
+```
+
+### matches
+Matches a string. Will throw an error if any object but string is passed. Can't be undefined as well.
+```js
+schema: {
+   _id: [],
+   name: {
+      matches: /\d{4}/
+   }
+}
+```
 
 ## Set Attributes
 
