@@ -70,7 +70,9 @@ var = Model.extend({
 ## Schema parameters
 
 ### required
-Saving will be rejected if one the require fields is undefined
+Operation will be rejected if:
+
+#### "required" it a type of boolean and target value is undefined
 ```js
 schema: {
    _id: [],
@@ -79,6 +81,48 @@ schema: {
    }
 }
 ```
+#### "required" it a type of function and returns something but undefined
+```js
+schema: {
+   _id: [],
+   name: {
+      required: function(value) {
+         if (value === "test") {
+            return "SomeError";
+         }
+      }
+   }
+}
+```
+An exception can thrown as well
+
+```js
+schema: {
+   _id: [],
+   name: {
+      required: function(value) {
+         if (value === "test") {
+            throw {
+               status: 400,
+               message: "AllBad"
+            }
+         }
+      }
+   }
+}
+```
+
+#### "required" it a type of RegExp and the expression gives nothing or value is undefined
+```js
+schema: {
+   _id: [],
+   name: {
+      required: /\d{4}/
+   },
+   other: {}
+}
+```
+
 ### ignore
 Means that field is settable but will be ignored when saved
 ```js
@@ -123,16 +167,7 @@ schema: {
 }
 ```
 
-### matches
-Matches a string. Will throw an error if any object but string is passed. Can't be undefined as well.
-```js
-schema: {
-   _id: [],
-   name: {
-      matches: /\d{4}/
-   }
-}
-```
+
 
 ## Set Attributes
 

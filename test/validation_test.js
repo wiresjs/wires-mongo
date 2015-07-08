@@ -35,9 +35,40 @@ describe('Validation test', function() {
       schema: {
          _id: [],
          name: {
-            matches: /\d{4}/
+            required: /\d{4}/
          },
          other: {}
+      }
+   })
+
+   var Bar = Model.extend({
+      collection: "test_bar_validation",
+      schema: {
+         _id: [],
+         name: {
+            required: function(value) {
+               if (value === "test") {
+                  return "SomeError";
+               }
+            }
+         }
+      }
+   })
+
+   var FooBar = Model.extend({
+      collection: "test_foobar_validation",
+      schema: {
+         _id: [],
+         name: {
+            required: function(value) {
+               if (value === "test") {
+                  throw {
+                     status: 400,
+                     message: "AllBad"
+                  }
+               }
+            }
+         }
       }
    })
 
@@ -137,6 +168,41 @@ describe('Validation test', function() {
          done()
       }).catch(function(e) {
          done(e);
+      })
+   });
+
+   it("Should reject if Validate is a function with some message", function(done) {
+      var bar = new Bar({
+         name: "test"
+      });
+      bar.save().then(function() {
+         done("Should not pass")
+      }).catch(function(e) {
+         e.message.should.be.equal("SomeError");
+         done();
+      })
+   });
+
+   it("Should accept if Validate is a function and value passes", function(done) {
+      var bar = new Bar({
+         name: "test1"
+      });
+      bar.save().then(function() {
+         done()
+      }).catch(function(e) {
+         done("Should not have any errors here")
+      })
+   });
+
+   it("Should reject if exception occured within a validate function", function(done) {
+      var foobar = new FooBar({
+         name: "test"
+      });
+      foobar.save().then(function() {
+         done("Should not save it")
+      }).catch(function(e) {
+         e.message.should.be.equal("AllBad");
+         done()
       })
    });
 

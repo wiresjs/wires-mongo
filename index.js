@@ -132,6 +132,32 @@ var ValidationBase = Class.extend({
 						return decline("Field '" + key + "' is required")
 					}
 				}
+				// Custom function******************************
+				if (_.isFunction(required)) {
+					if (self.attrs[key] === undefined) {
+						return decline("Field '" + key + "' is required")
+					}
+					var result;
+					try {
+						result = required.bind(self)(self.attrs[key]);
+					} catch (e) {
+						return reject(e);
+					}
+					if (result) {
+						return decline(result.toString())
+					}
+				}
+
+				if (required instanceof RegExp) {
+					if (!_.isString(self.attrs[key])) {
+						return decline("Field '" + key + "' should be a string")
+					}
+					var stringValue = self.attrs[key].toString();
+					if (!stringValue.match(required)) {
+						return decline("Field '" + key + "' is invalid");
+					}
+				}
+
 				// *************************************************
 				// Min length
 				var minLength = params.minLength;
@@ -160,17 +186,7 @@ var ValidationBase = Class.extend({
 						}
 					}
 				}
-				// matches ***************************************
-				var regexp = params.matches;
-				if (regexp) {
-					if (!_.isString(self.attrs[key])) {
-						return decline("Field '" + key + "' should be a string")
-					}
-					var stringValue = self.attrs[key].toString();
-					if (!stringValue.match(regexp)) {
-						return decline("Field '" + key + "' is invalid");
-					}
-				}
+
 			}
 		}
 		return resolve();
