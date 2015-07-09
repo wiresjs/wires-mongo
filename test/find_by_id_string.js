@@ -57,9 +57,14 @@ describe('String ID to MongoDBid conversion', function() {
 		}).catch(done)
 	});
 
-	it('Should not apply search by id, if first argument is not a valid mongo id ', function() {
-		var cr = TestUser.find('some bullshi');
-		Object.keys(cr._reqParams.query).length.should.be.equal(0)
+	it('Should not apply search by id, if first argument is not a valid mongo id ', function(done) {
+		try {
+		 TestUser.find('some bullshi');
+		 done("Should not be here");
+	 } catch(e){
+		 done();
+	 }
+
 	});
 
 	it('Should find a record using "find" with mongoid first argument', function(done) {

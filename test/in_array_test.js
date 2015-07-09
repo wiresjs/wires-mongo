@@ -50,6 +50,16 @@ describe('In array', function() {
 		record.inArray(someModelArray).should.be.equal(true)
 	});
 
+	it('Record should be in a strange array', function() {
+		var Weirdo = function(){
+			this.toString = function(){
+				return record.get("_id").toString();
+			}
+		}
+		var someWeiredArray = [new Weirdo()]
+		record.inArray(someWeiredArray).should.be.equal(true)
+	});
+
 
 
 });

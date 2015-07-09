@@ -420,12 +420,18 @@ var Query = ProjectionBase.extend({
 				if (first !== undefined) {
 					var v = tryMongoId(first);
 					mongo_id = (v instanceof ObjectID) ? v : undefined;
+					if (mongo_id) {
+						this._reqParams.query = _.merge(this._reqParams.query, {
+							_id: mongo_id
+						})
+					} else {
+						throw {
+							status: 400,
+							message: "Invalid MongoID in 'find'"
+						}
+					}
 				}
-				if (mongo_id) {
-					this._reqParams.query = _.merge(this._reqParams.query, {
-						_id: mongo_id
-					})
-				}
+
 			}
 		}
 		return this;
@@ -907,17 +913,7 @@ var AccessHelpers = DBRequest.extend({
 			return false;
 		var _inArray = false;
 		_.each(arr, function(item) {
-			var id;
-			if (_.isString(item)) {
-				id = tryMongoId(item);
-			}
-			if (item instanceof Model) {
-				id = item.get("_id");
-			}
-			if (item instanceof ObjectID) {
-				id = item;
-			}
-
+			var id = tryMongoId(item);
 			if (id && id.toString() === this.attrs._id.toString()) {
 				return _inArray = true;
 			}
@@ -981,8 +977,8 @@ module.exports = Model = AccessHelpers.extend({
 		this._reqParams.with[field] = model;
 		return this;
 	},
-	add : function(target, property){
-		if ( !_.isArray(this.get(property) ) ){
+	add: function(target, property) {
+		if (!_.isArray(this.get(property))) {
 			this.set(property, [])
 		}
 		this.get(property).push(target)
