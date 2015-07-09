@@ -981,6 +981,12 @@ module.exports = Model = AccessHelpers.extend({
 		this._reqParams.with[field] = model;
 		return this;
 	},
+	add : function(target, property){
+		if ( !_.isArray(this.get(property) ) ){
+			this.set(property, [])
+		}
+		this.get(property).push(target)
+	},
 	getStringId: function() {
 		if (this.attrs._id) {
 			return this.attrs._id.toString();
