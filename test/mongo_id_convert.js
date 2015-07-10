@@ -4,13 +4,31 @@ var logger = require("log4js").getLogger("test")
 var TestUser = require("./model.js")
 var _ = require('lodash');
 var ObjectID = require('mongodb').ObjectID;
-
+var Model = require('../index')
+var domain = require("wires-domain")
 describe('Ensure string id will be converted to mongo id', function() {
+
+
+	var FooBar = Model.extend({
+      collection: "test_mongo_id_convert_foo_bar",
+      schema: {
+         _id: [],
+         name: {
+         }
+      }
+   })
+
 
 	before(function(done) {
 		var user = new TestUser();
-		user.drop().then(function(data) {
-			done();
+		user.drop().then(FooBar.drop()).then(function(){
+			var records = [ {name : "bar"}, {name : "foo"}, {name : "test"}, {name : "pukka"} ];
+			domain.each(records, function(item){
+				return new FooBar(item).save();
+			}).then(function(){
+				done();
+			})
+
 		}).catch(function(e) {
 			logger.fatal(e.stack || e)
 		})
@@ -112,5 +130,36 @@ describe('Ensure string id will be converted to mongo id', function() {
 			done(e)
 		});
 	});
+
+	it('Should find by RegExp', function() {
+		//helloworld
+		FooBar.find({name : /fo/}).first().then(function(record){
+			record.should.be.ok;
+			record.get("name").should.equal("foo");
+			done();
+		}).catch(function(e){
+			done(e)
+		})
+	})
+
+	it('Should find by RegExp (test)', function() {
+		//helloworld
+		FooBar.find({name : /te/}).first().then(function(record){
+			record.should.be.ok;
+			record.get("name").should.equal("test");
+			done();
+		}).catch(function(e){
+			done(e)
+		})
+	})
+
+	it('Should not find by RegExp', function() {
+		//helloworld
+		FooBar.find({name : /bajak/}).first().then(function(record){
+			done("Should not find");
+		}).catch(function(e){
+			done()
+		})
+	})
 
 });

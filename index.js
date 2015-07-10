@@ -58,6 +58,9 @@ var tryMongoId = function(value) {
 		}
 		return value;
 	}
+	if ( value instanceof RegExp ){
+		return value;
+	}
 
 	// Git it another try
 	// The last chance...
@@ -676,6 +679,7 @@ var DBRequest = Query.extend({
 		var self = this;
 		return new Promise(function(resolve, reject) {
 			domain.require(function($db) {
+
 				if (process.env.DEBUG) {
 					logger.info("QUERY FROM " + collectionName + " ->\n" + JSON.stringify(self._reqParams.query, 2, 2));
 				}
