@@ -69,10 +69,10 @@ var = Model.extend({
 
 ## Schema parameters
 
-### required
+*required*
 Operation will be rejected if:
 
-#### "required" it a type of boolean and target value is undefined
+_"required"_ it a type of boolean and target value is undefined*
 ```js
 schema: {
    _id: [],
@@ -81,7 +81,7 @@ schema: {
    }
 }
 ```
-#### "required" it a type of function and returns something but undefined
+_"required"_ it a type of function and returns something but undefined*
 ```js
 schema: {
    _id: [],
@@ -112,7 +112,7 @@ schema: {
 }
 ```
 
-#### "required" it a type of RegExp and the expression gives nothing or value is undefined
+_"required"_ it a type of RegExp and the expression gives nothing or value is undefined*
 ```js
 schema: {
    _id: [],
@@ -123,7 +123,7 @@ schema: {
 }
 ```
 
-### ignore
+*ignore*
 Means that field is settable but will be ignored when saved
 ```js
 schema: {
@@ -134,7 +134,7 @@ schema: {
 }
 ```
 
-### unique
+*unique*
 Applies to arrays only. Understands mongoids, models and strings
 ```js
 schema: {
@@ -145,7 +145,7 @@ schema: {
 }
 ```
 
-### minLength
+*minLength*
 Checks the minimum length of a string. Will throw an error if any object but string is passed
 ```js
 schema: {
@@ -156,7 +156,7 @@ schema: {
 }
 ```
 
-### maxLength
+*maxLength*
 Checks the maximum length of a string. Will throw an error if any object but string is passed
 ```js
 schema: {
@@ -406,6 +406,50 @@ You can also remove all found records. No instance required. However, we will cr
 ```js
 new User().find({name : /test/}).removeAll();
 ```
+
+## Array manupulations and events
+
+You can use "add" and "exclude" methods to do manupulations with arrays
+Let's say, we have a model
+
+```js
+var Item = Model.extend({
+   collection: "test_items_array",
+   schema: {
+      _id: {},
+      tags: {
+         reference : true
+      }
+   },
+   onAddToTags : function(tag){
+   },
+   onExcludeFromTags : function(tag){
+   }
+```
+
+__Adding item to array__
+
+Add a tag to the tags collection will look like:
+```js
+var item = new Item();
+item.add(tag, "tags").then(function(){
+})
+```
+Each time you call "add" a corresponding method will be called (if defined).
+It's form using "onAddTo" + YouPropertyNameInCameCase
+
+
+You can return a promise if you like. It will be resolved accordingly.
+
+__Excluding item from  array__
+
+```js
+var item = new Item();
+item.exclude(tag, "tags").then(function(){
+})
+```
+It calls "onExcludeFrom" + YouPropertyNameInCameCase if defined. It has the exact same behavior as the adding method
+
 
 ## Cascade remove
 

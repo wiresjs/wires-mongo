@@ -5,8 +5,9 @@ var TestUser = require("./model.js")
 var Model = require('../index');
 var domain = require('wires-domain')
 var _ = require('lodash')
+
 var Tag = Model.extend({
-   collection: "tag_test",
+   collection: "cascade_remove_tag",
    cascade_remove: ['@exclude Blog.tags', '@nullify Blog.someother_tag'],
    schema: {
       _id: [],
@@ -20,7 +21,7 @@ domain.register("Tag", function() {
    return Tag;
 })
 var Item = Model.extend({
-   collection: "items_test",
+   collection: "cascade_remove_item",
    cascade_remove: ['@remove Blog.item'],
    schema: {
       _id: [],
@@ -36,7 +37,7 @@ domain.register("Item", function() {
    return Item;
 })
 var Blog = Model.extend({
-   collection: "blog_test",
+   collection: "cascade_remove_blog",
    schema: {
       _id: [],
       name: {
@@ -70,6 +71,8 @@ describe('Removing should be okay', function() {
                name: "tag 1"
             }, {
                name: "tag 2"
+            }, {
+               name: "tag 3"
             }], function(item) {
                return new Tag(item).save();
             }).then(function(tags) {
