@@ -1,15 +1,15 @@
 # wires-mongo
 
-Wires Mongo is a simple ORM for mongodb. It uses native mongodb driver and does not invent any special quires. The driver is comprehensive enough. It is using Promises, and has conform to wires-domain protocol.
-
+An ambitious ORM for ambitious project
 
 
 ## Features
 
   * Model mapping
+  * Automatic "join" query
+  * List relation joining with optimized query
   * Promise based
-  * Reference fetching with optimized query
-  * Schema with auto validations
+  * Schema with validations
   * Simple but powerful API
   * Good test coverage with comprehensive examples
 
@@ -22,9 +22,12 @@ $ npm install wires-mongo
 
 ## Connecting db service
 
-ORM does not have a connector, you need to register wires-domain service that return mongo cursor.
-There are bugs related to getting collection name with newer version of driver. So, for now, please consider using
-mongodb -> 1.4.17
+ORM does not have a connector, you need to register wires-domain service that returns mongo cursor.
+
+```bash
+$ npm install wires-domain
+```
+
 ```js
 var domain = require("wires-domain")
 var mongo = require('mongodb');
@@ -57,12 +60,12 @@ var Model = require('wires-mongo')
 var = Model.extend({
 	collection: "super_test",
 	schema: {
-		_id: [],
+		_id: {},
 		name: {
 		    required: true
 		},
-		email: [],
-		password: [],
+		email: {},
+		password: {},
 	}
 })
 ```
@@ -72,7 +75,7 @@ var = Model.extend({
 *required*
 Operation will be rejected if:
 
-_"required"_ it a type of boolean and target value is undefined*
+__"required"__ it a type of boolean and target value is undefined*
 ```js
 schema: {
    _id: [],
@@ -81,7 +84,7 @@ schema: {
    }
 }
 ```
-_"required"_ it a type of function and returns something but undefined*
+__"required"__ it a type of function and returns something but undefined*
 ```js
 schema: {
    _id: [],
