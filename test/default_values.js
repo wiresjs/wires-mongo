@@ -15,6 +15,11 @@ describe('Default values', function() {
 			name: {},
 			published: {
 				defaults: false
+			},
+			date: {
+				defaults: function() {
+					return new Date();
+				}
 			}
 		}
 	})
@@ -31,6 +36,7 @@ describe('Default values', function() {
 			name: "test"
 		}).save().then(function(item) {
 			item.attrs.published.should.be.equal(false);
+			item.attrs.date.should.be.instanceof(Date)
 			done()
 		}).catch(function(e) {
 			done(e);

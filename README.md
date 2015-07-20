@@ -24,6 +24,7 @@ $ npm install wires-mongo
 
 ORM does not have a connector, you need to register wires-domain service that returns mongo cursor.
 
+
 ```bash
 $ npm install wires-domain
 ```
@@ -362,7 +363,12 @@ schema: {
 		name: {},
 		published: {
 			defaults: false
-		}
+		},
+      date : {
+         defaults : function(){
+            return new Date()
+         }
+      }
 	}
 ```
 

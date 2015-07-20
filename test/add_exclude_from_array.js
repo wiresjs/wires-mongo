@@ -79,10 +79,15 @@ describe('Remove and Add from array', function() {
    });
 
    it("Should exclude from an array", function(done) {
-      Item.find().first().then(function(item){
+      Item.find().with('tags', Tag).first().then(function(item){
+
          item.exclude(tag1, "tags").then(function(array){
             tag1.inArray(array).should.be.equal(false)
-            done();
+            item.save().then(function(){
+            
+                  done();
+            })
+
          });
       }).catch(function(e){
          done(e)

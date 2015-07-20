@@ -58,7 +58,7 @@ var tryMongoId = function(value) {
 		}
 		return value;
 	}
-	if ( value instanceof RegExp ){
+	if (value instanceof RegExp) {
 		return value;
 	}
 
@@ -254,7 +254,7 @@ var EventBase = ValidationBase.extend({
 							return Instance.find(criteria).all().then(function(_records) {
 								return domain.each(_records, function(record) {
 									//1
-									return record.exclude(id, key).then(function(){
+									return record.exclude(id, key).then(function() {
 										return record.save();
 									});
 									/*record.set(key, _.filter(record.get(key), function(item) {
@@ -320,6 +320,7 @@ var ProjectionBase = EventBase.extend({
 
 	toDatabase: function() {
 		var self = this;
+
 		var data = {};
 		_.each(this.schema, function(options, k) {
 
@@ -354,7 +355,11 @@ var ProjectionBase = EventBase.extend({
 				}
 			} else {
 				if (options.defaults !== undefined) {
-					data[k] = options.defaults;
+					if (_.isFunction(options.defaults)) {
+						data[k] = options.defaults.bind(self)();
+					} else {
+						data[k] = options.defaults;
+					}
 				}
 			}
 		}, this);
@@ -571,7 +576,9 @@ var DBRequest = Query.extend({
 			// If it's a new record resolving onBeforeCreate
 			isNewRecord ? this.onBeforeCreate : this.onBeforeUpdate
 		], this).then(function(res) {
+
 			var doc = self.toDatabase();
+
 			return new Promise(function(resolve, reject) {
 				domain.require(function($db) {
 					if (isNewRecord) {
@@ -606,7 +613,6 @@ var DBRequest = Query.extend({
 							if (e) {
 								return reject(e)
 							}
-
 							self.set(doc);
 							return resolve(self);
 						});
@@ -985,41 +991,46 @@ module.exports = Model = AccessHelpers.extend({
 		this._reqParams.with[field] = model;
 		return this;
 	},
-	add : function(target, property){
+	add: function(target, property) {
 		var self = this;
-		if ( _.isArray(target) ) {
-			return domain.each(target, function(item){
+		if (_.isArray(target)) {
+			return domain.each(target, function(item) {
 				return self._add(item, property)
 			})
 		}
 		return self._add(target, property);
 	},
 	_add: function(target, property) {
-		if (!_.isString(property) ){
-			throw {status : 500, message : "Adding to an array should look like -> add([model],[string-property])"}
+		if (!_.isString(property)) {
+			throw {
+				status: 500,
+				message: "Adding to an array should look like -> add([model],[string-property])"
+			}
 		}
 		if (!_.isArray(this.get(property))) {
 			this.set(property, [])
 		}
 		var self = this;
 
-		var method = "onAddTo" + Model.toCamelCase(property,{first : true});
-		if (process.env.DEBUG ){
+		var method = "onAddTo" + Model.toCamelCase(property, {
+			first: true
+		});
+		if (process.env.DEBUG) {
 			logger.info("Calling " + method);
 		}
-		return new Promise(function(resolve, reject){
-			var addAndResolve = function(){
+		return new Promise(function(resolve, reject) {
+			var addAndResolve = function() {
 				self.get(property).push(target);
 				return resolve(self.get(property));
 			}
-			if ( _.isFunction(self[method]) ){
+			if (_.isFunction(self[method])) {
 				try {
 					var result = self[method](target);
-				} catch(e){
+				} catch (e) {
 					return reject(e)
 				}
-				if ( result instanceof Promise){
-					return result.then(function(){
+				if (result instanceof Promise) {
+					return result.then(function() {
 						return addAndResolve();
 					}).catch(reject)
 				} else {
@@ -1030,51 +1041,56 @@ module.exports = Model = AccessHelpers.extend({
 			}
 		});
 	},
-	exclude : function(target, property){
+	exclude: function(target, property) {
 		var self = this;
-		if ( _.isArray(target) ) {
-			return domain.each(target, function(item){
+		if (_.isArray(target)) {
+			return domain.each(target, function(item) {
 				return self._exclude(item, property)
 			})
 		}
 		return self._exclude(target, property);
 	},
-	_exclude : function(target, property){
-		if (!_.isString(property) ){
-			throw {status : 500, message : "Excuding from array should look like -> exclude([string-property],[model])"}
+	_exclude: function(target, property) {
+		if (!_.isString(property)) {
+			throw {
+				status: 500,
+				message: "Excuding from array should look like -> exclude([string-property],[model])"
+			}
 		}
 		var self = this;
 		return new Promise(function(resolve, reject) {
 			if (!_.isArray(self.get(property))) {
 				return resolve();
 			}
-			if ( !target){
+			if (!target) {
 				return resolve();
 			}
 			var array = self.get(property);
 
-			var method = "onExcludeFrom" + Model.toCamelCase(property,{first : true});
-			if (process.env.DEBUG ){
+			var method = "onExcludeFrom" + Model.toCamelCase(property, {
+				first: true
+			});
+			if (process.env.DEBUG) {
 				logger.info("Calling " + method);
 			}
 
 			// Removing item from an array
-			var excludeAndResolve = function(){
-				var newArray = _.filter(array, function(item) {
-					if( item ){
-						return tryMongoId(item).toString() !== tryMongoId(target).toString();
-					}
-					return true;
-				})
-				self.set(property, newArray)
-				return resolve(newArray);
-			}
-			// If even is registered
-			if ( _.isFunction(self[method]) ){
+			var excludeAndResolve = function() {
+					var newArray = _.filter(array, function(item) {
+						if (item) {
+							return tryMongoId(item).toString() !== tryMongoId(target).toString();
+						}
+						return true;
+					})
+					self.set(property, newArray)
+					return resolve(newArray);
+				}
+				// If even is registered
+			if (_.isFunction(self[method])) {
 
 				var result = self[method](target);
-				if ( result["then"] && result["catch"]){
-					return result.then(function(){
+				if (result["then"] && result["catch"]) {
+					return result.then(function() {
 						return excludeAndResolve();
 					}).catch(reject)
 				} else {
@@ -1169,25 +1185,25 @@ module.exports = Model = AccessHelpers.extend({
 	_wires_mongo_model: true,
 }, {
 	_wires_mongo_model: true,
-	toCamelCase : function(input, opts){
-		if ( !input)
+	toCamelCase: function(input, opts) {
+		if (!input)
 			return;
 		input = input.toLowerCase();
 		var capitalizeNext = false;
 		var res = [];
 		var opts = opts || {};
-		_.each(input, function(letter, index){
-			if ( index === 0 && opts.first ){
+		_.each(input, function(letter, index) {
+			if (index === 0 && opts.first) {
 				letter = letter.toUpperCase();
 			}
-			if (capitalizeNext){
+			if (capitalizeNext) {
 				letter = letter.toUpperCase();
 				capitalizeNext = false;
 			}
-			if ( letter === "_"){
+			if (letter === "_") {
 				capitalizeNext = true;
 			} else {
-					res.push(letter);
+				res.push(letter);
 			}
 		});
 		return res.join('');
