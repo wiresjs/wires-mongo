@@ -589,8 +589,10 @@ var DBRequest = Query.extend({
 							if (err) {
 								return reject(err);
 							}
-							self._existing_record_id = records[0]._id;
-							self.set(records[0]);
+							// Keep it compatible with older versions 
+							var responseArray = records.ops || records;
+							self._existing_record_id = responseArray[0]._id;
+							self.set(responseArray[0]);
 							return resolve(self)
 						});
 					} else {
