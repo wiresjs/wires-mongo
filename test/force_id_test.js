@@ -1,9 +1,8 @@
-var assert = require('assert')
+var assert = require('assert');
 var should = require('should');
-var logger = require("log4js").getLogger("test")
-var TestUser = require("./model.js")
-var Model = require('../index')
-
+var logger = require("log4js").getLogger("test");
+var TestUser = require("./model.js");
+var Model = require('../index');
 
 describe('Force id test', function() {
    var Item = Model.extend({
@@ -12,15 +11,15 @@ describe('Force id test', function() {
          _id: [],
          name: {}
       }
-   })
+   });
 
    var forceId = "5595269f6cd64ec0b7805ba2";
    var secondRecordId;
    before(function(done) {
       new Item().drop().then(function() {
          done();
-      })
-   })
+      });
+   });
 
    it("Should have forced id", function(done) {
       var item = new Item({
@@ -30,9 +29,9 @@ describe('Force id test', function() {
       item.forceId(forceId);
 
       item.save().then(function(item) {
-         item.equals(forceId).should.be.equal(true)
+         item.equals(forceId).should.be.equal(true);
          done();
-      }).catch(done)
+      }).catch(done);
    });
 
    it("Should not affect existing records", function(done) {
@@ -40,15 +39,13 @@ describe('Force id test', function() {
       Item.find({
          _id: forceId
       }).first().then(function(record) {
-         record.set("_id", "556c571d1e1dd93c4e93c060")
-         record.forceId("556c571d1e1dd93c4e93c060")
-         record.set("name", "test")
-
-
+         record.set("_id", "556c571d1e1dd93c4e93c060");
+         record.forceId("556c571d1e1dd93c4e93c060");
+         record.set("name", "test");
 
          return record.save();
       }).then(function(record) {
-         record.get("name").should.be.equal("test")
+         record.get("name").should.be.equal("test");
          record.equals(forceId).should.be.equal(true);
          done();
       }).catch(done);
@@ -59,11 +56,11 @@ describe('Force id test', function() {
          name: "Pekka"
       });
       item.save().then(function(newrecord) {
-         newrecord.equals(forceId).should.equal(false)
+         newrecord.equals(forceId).should.equal(false);
          secondRecordId = newrecord.getStringId();
          done();
-      }).catch(done)
-   })
+      }).catch(done);
+   });
 
    it("Should find Pekka and validate previosly set id", function(done) {
       Item.find({
@@ -71,7 +68,7 @@ describe('Force id test', function() {
       }).first().then(function(pekka) {
          pekka.getStringId().should.equal(secondRecordId);
          done();
-      }).catch(done)
+      }).catch(done);
    });
 
 });

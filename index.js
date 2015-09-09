@@ -8,7 +8,6 @@ var resolveall = require("resolveall")
 var pagination = require("pagination");
 var Model;
 
-
 var getMongoIdFromString = function(value) {
 	if (value.length === 24) {
 		var validMongoId = new RegExp("^[0-9a-fA-F]{24}$");
@@ -20,7 +19,6 @@ var getMongoIdFromString = function(value) {
 	}
 	return null;
 }
-
 
 var convertStringToMongoId = function(value) {
 	var v = getMongoIdFromString(value)
@@ -73,7 +71,6 @@ var tryMongoId = function(value) {
 	return value;
 }
 
-
 var _uniqueArray = function(list) {
 	var newlist = [];
 	var storage = {};
@@ -91,8 +88,6 @@ var _uniqueArray = function(list) {
 
 	return newlist;
 }
-
-
 
 var ValidationBase = Class.extend({
 	initialize: function() {},
@@ -329,11 +324,11 @@ var ProjectionBase = EventBase.extend({
 				if (!options.ignore) {
 					// try model
 					if (self.attrs[k] instanceof Model && self.attrs[k].get("_id")) {
-						data[k] = self.attrs[k].get("_id")
+						data[k] = self.attrs[k].get("_id");
 					} else {
 						// Check if it's a reference
 						// And convert it to mongoid
-						data[k] = options.reference ? tryMongoId(self.attrs[k]) : self.attrs[k]
+						data[k] = options.reference ? tryMongoId(self.attrs[k]) : self.attrs[k];
 					}
 
 					// check for array
@@ -341,14 +336,14 @@ var ProjectionBase = EventBase.extend({
 						var filteredArray = [];
 						_.each(self.attrs[k], function(item) {
 							if (item instanceof Model && item.get("_id")) {
-								filteredArray.push(item.get("_id"))
+								filteredArray.push(item.get("_id"));
 							} else {
 								filteredArray.push(item);
 							}
 						});
 						// Unique array property
 						if (options.unique) {
-							filteredArray = _uniqueArray(filteredArray)
+							filteredArray = _uniqueArray(filteredArray);
 						}
 						data[k] = filteredArray;
 					}
@@ -407,8 +402,6 @@ var ProjectionBase = EventBase.extend({
 		return this;
 	}
 });
-
-
 
 var Query = ProjectionBase.extend({
 	initialize: function() {},
@@ -479,7 +472,7 @@ var Query = ProjectionBase.extend({
 	limit: function(number) {
 		return this._setNumberValueToOption("limit", number);
 	}
-})
+});
 
 var DBRequest = Query.extend({
 	initialize: function() {},
@@ -489,6 +482,7 @@ var DBRequest = Query.extend({
 	getCollectionNames: function() {
 		return new Promise(function(resolve, reject) {
 			domain.require(function($db) {
+
 				$db.collectionNames(function(err, data) {
 					var res = [];
 					if (err) {
@@ -508,18 +502,18 @@ var DBRequest = Query.extend({
 	},
 	paginate: function(opts) {
 		var self = this;
-		var opts = opts || {};
+		opts = opts || {};
 		return new Promise(function(resolve, reject) {
 
 			var perPage = self._getValidNumber(opts.perPage) || 10;
 			var page = self._getValidNumber(opts.page) || 1;
-			var range = self._getValidNumber(opts.range) || 10
+			var range = self._getValidNumber(opts.range) || 10;
 
 			return self.count().then(function(count) {
 
 				// Modifying the query
 				self.skip((page - 1) * perPage);
-				self.limit(perPage)
+				self.limit(perPage);
 				return count;
 			}).then(function(count) {
 
@@ -534,12 +528,12 @@ var DBRequest = Query.extend({
 					var output = {
 						paginator: paginator.getPaginationData(),
 						items: models
-					}
+					};
 					return resolve(output);
-				})
+				});
 			}).catch(function(e) {
 				return reject(e);
-			})
+			});
 		});
 	},
 	// Dropping database
@@ -550,10 +544,10 @@ var DBRequest = Query.extend({
 			domain.require(function($db) {
 				$db.collection(collectionName).drop(function(err, success) {
 					return resolve(success);
-				})
+				});
 			}).catch(reject);
 
-		})
+		});
 	},
 	// Setting custom id
 	forceId: function(id) {
@@ -564,10 +558,7 @@ var DBRequest = Query.extend({
 	// if not - insert
 	save: function() {
 		var self = this;
-
 		var isNewRecord = !this._existing_record_id;
-		var self = this;
-
 
 		return resolveall.chain([
 			this._validate,
@@ -589,22 +580,22 @@ var DBRequest = Query.extend({
 							if (err) {
 								return reject(err);
 							}
-							// Keep it compatible with older versions 
+							// Keep it compatible with older versions
 							var responseArray = records.ops || records;
 							self._existing_record_id = responseArray[0]._id;
 							self.set(responseArray[0]);
-							return resolve(self)
+							return resolve(self);
 						});
 					} else {
 						// Removing _id
 						delete doc._id;
 
 						var op = {
-								$set: doc
-							}
-							// Unsetting fields if necessary
+							$set: doc
+						};
+						// Unsetting fields if necessary
 						if (Object.keys(self._unset).length > 0) {
-							op["$unset"] = self._unset;
+							op.$unset = self._unset;
 						}
 
 						$db.collection(self.collectionName).findAndModify({
@@ -613,15 +604,15 @@ var DBRequest = Query.extend({
 							new: 1
 						}, function(e, doc) {
 							if (e) {
-								return reject(e)
+								return reject(e);
 							}
-							self.set(doc);
+							self.set(doc.value || doc);
 							return resolve(self);
 						});
 					}
-				})
+				});
 			});
-		})
+		});
 	},
 	// Gets all records
 	all: function() {
@@ -654,7 +645,8 @@ var DBRequest = Query.extend({
 						if (e) {
 							return reject(e);
 						}
-						return resolve(result);
+						var removed = result.result ? (result.result.n || 0) : 0;
+						return resolve(removed);
 					});
 				}).catch(reject);
 			},
@@ -663,7 +655,6 @@ var DBRequest = Query.extend({
 	},
 	// Removes all records
 	removeAll: function() {
-
 
 		return this.all().then(function(items) {
 
@@ -804,7 +795,6 @@ var DBRequest = Query.extend({
 	},
 	filterResults: function(models) {
 		var self = this;
-
 
 		return new Promise(function(resolve, reject) {
 			if (self._filter_callback !== undefined && _.isFunction(self._filter_callback)) {

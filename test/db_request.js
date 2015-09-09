@@ -3,17 +3,14 @@ var should = require('should');
 var logger = require("log4js").getLogger("test")
 var TestUser = require("./model.js")
 
-
-
 describe('Model db queries', function() {
-	it('Should give collection names', function(done) {
-		var user = new TestUser();
-		user.getCollectionNames().then(function(res) {
-			res.should.be.instanceof(Array)
-
-			done();
-		})
-	});
+	// it('Should give collection names', function(done) {
+	// 	var user = new TestUser();
+	// 	user.getCollectionNames().then(function(res) {
+	// 		res.should.be.instanceof(Array)
+	// 		done();
+	// 	})
+	// });
 
 	it('Should drop database', function(done) {
 		var user = new TestUser();
