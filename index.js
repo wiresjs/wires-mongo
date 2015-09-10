@@ -637,7 +637,7 @@ var DBRequest = Query.extend({
 			this.onCascadeRemove,
 			function(resolve, reject) {
 				if (!currentId)
-					return reject("Error in collection " + collectionName + ". ID is required in remove operation")
+					return reject("Error in collection " + collectionName + ". ID is required in remove operation");
 				domain.require(function($db) {
 					$db.collection(collectionName).remove({
 						_id: self._queryValue("_id", currentId)
@@ -645,7 +645,7 @@ var DBRequest = Query.extend({
 						if (e) {
 							return reject(e);
 						}
-						var removed = result.result ? (result.result.n || 0) : 0;
+						var removed = result.result ? (result.result.n || 0) : result;
 						return resolve(removed);
 					});
 				}).catch(reject);
