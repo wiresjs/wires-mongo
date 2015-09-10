@@ -747,7 +747,7 @@ var DBRequest = Query.extend({
 				// Data can be null (in case of freestle callback)
 				if (data) {
 					var targetField = item.attrs[data.field];
-					if (targetField instanceof ObjectID) {
+					if (tryMongoId(targetField) instanceof ObjectID) {
 						if (data.map[targetField.toString()]) {
 							// Setting a one2one records here
 							item.attrs[data.field] = data.map[targetField.toString()];
@@ -872,12 +872,12 @@ var DBRequest = Query.extend({
 							models: models,
 							target: self._reqParams.with[key]
 						}
-					}))
+					}));
 				});
 				resolveall.chain(toResolve).then(function(results) {
 					self._bindReferences(models, results);
 
-					return resolve(self.filterResults(models))
+					return resolve(self.filterResults(models));
 
 				}).catch(reject);
 			});
@@ -894,7 +894,7 @@ var AccessHelpers = DBRequest.extend({
 		if (!target) {
 			return false;
 		}
-		var target = tryMongoId(target);
+		target = tryMongoId(target);
 		if (!(target instanceof ObjectID)) {
 			return false;
 		}
@@ -905,9 +905,9 @@ var AccessHelpers = DBRequest.extend({
 		return this;
 	},
 	arrayToJSON: function(models) {
-		var jsonList = []
+		var jsonList = [];
 		_.each(models, function(item) {
-			jsonList.push(item.toJSON ? item.toJSON() : item)
+			jsonList.push(item.toJSON ? item.toJSON() : item);
 		});
 		return jsonList;
 	},
@@ -932,7 +932,7 @@ module.exports = Model = AccessHelpers.extend({
 	initialize: function(data) {
 
 		// All user values are here
-		this.attrs = {}
+		this.attrs = {};
 		this._unset = {};
 
 		this.schema = this.constructor.prototype.schema;
@@ -942,11 +942,11 @@ module.exports = Model = AccessHelpers.extend({
 			query: {},
 			options: {},
 			with: {},
-		}
+		};
 		if (!this.schema) {
 			throw {
 				message: "Can't construct a model without schema"
-			}
+			};
 		}
 
 		this.remove = _.bind(this.remove, this);
@@ -987,7 +987,7 @@ module.exports = Model = AccessHelpers.extend({
 		var self = this;
 		if (_.isArray(target)) {
 			return domain.each(target, function(item) {
-				return self._add(item, property)
+				return self._add(item, property);
 			})
 		}
 		return self._add(target, property);
@@ -997,10 +997,10 @@ module.exports = Model = AccessHelpers.extend({
 			throw {
 				status: 500,
 				message: "Adding to an array should look like -> add([model],[string-property])"
-			}
+			};
 		}
 		if (!_.isArray(this.get(property))) {
-			this.set(property, [])
+			this.set(property, []);
 		}
 		var self = this;
 
@@ -1014,17 +1014,17 @@ module.exports = Model = AccessHelpers.extend({
 			var addAndResolve = function() {
 				self.get(property).push(target);
 				return resolve(self.get(property));
-			}
+			};
 			if (_.isFunction(self[method])) {
 				try {
 					var result = self[method](target);
 				} catch (e) {
-					return reject(e)
+					return reject(e);
 				}
 				if (result instanceof Promise) {
 					return result.then(function() {
 						return addAndResolve();
-					}).catch(reject)
+					}).catch(reject);
 				} else {
 					return addAndResolve();
 				}
@@ -1037,8 +1037,8 @@ module.exports = Model = AccessHelpers.extend({
 		var self = this;
 		if (_.isArray(target)) {
 			return domain.each(target, function(item) {
-				return self._exclude(item, property)
-			})
+				return self._exclude(item, property);
+			});
 		}
 		return self._exclude(target, property);
 	},
@@ -1047,7 +1047,7 @@ module.exports = Model = AccessHelpers.extend({
 			throw {
 				status: 500,
 				message: "Excuding from array should look like -> exclude([string-property],[model])"
-			}
+			};
 		}
 		var self = this;
 		return new Promise(function(resolve, reject) {
@@ -1068,23 +1068,23 @@ module.exports = Model = AccessHelpers.extend({
 
 			// Removing item from an array
 			var excludeAndResolve = function() {
-					var newArray = _.filter(array, function(item) {
-						if (item) {
-							return tryMongoId(item).toString() !== tryMongoId(target).toString();
-						}
-						return true;
-					})
-					self.set(property, newArray)
-					return resolve(newArray);
-				}
-				// If even is registered
+				var newArray = _.filter(array, function(item) {
+					if (item) {
+						return tryMongoId(item).toString() !== tryMongoId(target).toString();
+					}
+					return true;
+				});
+				self.set(property, newArray)
+				return resolve(newArray);
+			};
+			// If even is registered
 			if (_.isFunction(self[method])) {
 
 				var result = self[method](target);
 				if (result["then"] && result["catch"]) {
 					return result.then(function() {
 						return excludeAndResolve();
-					}).catch(reject)
+					}).catch(reject);
 				} else {
 					return excludeAndResolve();
 				}
@@ -1111,7 +1111,7 @@ module.exports = Model = AccessHelpers.extend({
 					if (_.isArray(value)) {
 						var pos = k * 1;
 						if (value[pos]) {
-							value = value[pos]
+							value = value[pos];
 							if (value instanceof Model) {
 								value = value.attrs;
 							}
@@ -1125,7 +1125,7 @@ module.exports = Model = AccessHelpers.extend({
 							value = value[k];
 						}
 					} else {
-						value = undefined
+						value = undefined;
 						return false;
 					}
 				}
@@ -1140,7 +1140,7 @@ module.exports = Model = AccessHelpers.extend({
 		_.each(fields, function(field) {
 			this.set(field, undefined);
 			this._unset[field] = true;
-		}, this)
+		}, this);
 	},
 	// Attaches values
 	set: function(key, value) {
@@ -1158,7 +1158,6 @@ module.exports = Model = AccessHelpers.extend({
 		var schema = this.schema;
 		var self = this;
 		var values = {};
-		var self = this;
 		_.each(schema, function(params, name) {
 			if (!params.hidden) {
 				var v = self.attrs[name];
@@ -1171,7 +1170,7 @@ module.exports = Model = AccessHelpers.extend({
 				}
 				values[name] = v;
 			}
-		})
+		});
 		return values;
 	},
 	_wires_mongo_model: true,
@@ -1183,7 +1182,7 @@ module.exports = Model = AccessHelpers.extend({
 		input = input.toLowerCase();
 		var capitalizeNext = false;
 		var res = [];
-		var opts = opts || {};
+		opts = opts || {};
 		_.each(input, function(letter, index) {
 			if (index === 0 && opts.first) {
 				letter = letter.toUpperCase();
@@ -1202,26 +1201,26 @@ module.exports = Model = AccessHelpers.extend({
 	},
 	with: function() {
 		var instance = new this();
-		return instance.with.apply(instance, arguments)
+		return instance.with.apply(instance, arguments);
 	},
 	find: function() {
 		var instance = new this();
-		return instance.find.apply(instance, arguments)
+		return instance.find.apply(instance, arguments);
 	},
 	required: function() {
 		var instance = new this();
-		return instance.required.apply(instance, arguments)
+		return instance.required.apply(instance, arguments);
 	},
 	projection: function() {
 		var instance = new this();
-		return instance.projection.apply(instance, arguments)
+		return instance.projection.apply(instance, arguments);
 	},
 	drop: function() {
 		var instance = new this();
-		return instance.drop.apply(instance, arguments)
+		return instance.drop.apply(instance, arguments);
 	},
 	findById: function() {
 		var instance = new this();
-		return instance.findById.apply(instance, arguments)
+		return instance.findById.apply(instance, arguments);
 	}
 });
