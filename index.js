@@ -223,7 +223,7 @@ var EventBase = ValidationBase.extend({
 					return reject({
 						status: 500,
 						message: "Wrong format detected, when using cascade_remove. Expected '@action Model.key'"
-					})
+					});
 				}
 				var match = path.match(/^@(\w+)\s*(\w+)\.(\w+)$/);
 				if (!match) {
@@ -231,7 +231,7 @@ var EventBase = ValidationBase.extend({
 					return reject({
 						status: 500,
 						message: "Cascade '" + path + "' does not conform the path rule - '@action Model.key'"
-					})
+					});
 				} else {
 					var action = match[1];
 					var model = match[2];
@@ -261,13 +261,13 @@ var EventBase = ValidationBase.extend({
 						}
 						// Remove record
 						if (action === "remove") {
-							var criteria = {}
+							var criteria = {};
 							criteria[key] = id;
 							return Instance.find(criteria).removeAll();
 						}
 
 						if (action === "nullify") {
-							var criteria = {}
+							var criteria = {};
 							criteria[key] = id;
 							return Instance.find(criteria).all().then(function(_records) {
 
@@ -275,15 +275,15 @@ var EventBase = ValidationBase.extend({
 
 									return _record.set(key, null).save();
 								});
-							})
+							});
 						}
-					})
+					});
 				}
 			}).then(function() {
-				return resolve()
+				return resolve();
 			}).catch(function() {
-				return reject(e)
-			})
+				return reject(e);
+			});
 
 		} else {
 			return resolve();
@@ -413,11 +413,11 @@ var Query = ProjectionBase.extend({
 		if (arguments.length === 2) {
 			this._reqParams.query[arguments[0]] = this._queryValue(arguments[0], arguments[1]);
 		} else {
-			var filteredCriteria = {}
+			var filteredCriteria = {};
 			var first = arguments[0];
 			if (_.isPlainObject(first)) {
-				var query = tryMongoId(first)
-				this._reqParams.query = _.merge(this._reqParams.query, query)
+				var query = tryMongoId(first);
+				this._reqParams.query = _.merge(this._reqParams.query, query);
 			} else {
 
 				var mongo_id;
@@ -428,12 +428,12 @@ var Query = ProjectionBase.extend({
 					if (mongo_id) {
 						this._reqParams.query = _.merge(this._reqParams.query, {
 							_id: mongo_id
-						})
+						});
 					} else {
 						throw {
 							status: 400,
 							message: "Invalid MongoID in 'find'"
-						}
+						};
 					}
 				}
 
@@ -712,12 +712,12 @@ var DBRequest = Query.extend({
 					var result = opts.target.bind(model)();
 					if (result instanceof Promise) {
 						return result.then(function(objects) {
-							model.set(opts.field, objects)
-						})
+							model.set(opts.field, objects);
+						});
 					}
 				}).then(function() {
-					return resolve()
-				}).catch(reject)
+					return resolve();
+				}).catch(reject);
 			}
 		} else {
 			// If actually model was passed
@@ -733,7 +733,7 @@ var DBRequest = Query.extend({
 				return resolve({
 					field: opts.field,
 					map: map
-				})
+				});
 			}).catch(reject);
 		}
 	},
@@ -746,11 +746,11 @@ var DBRequest = Query.extend({
 			_.each(results, function(data) {
 				// Data can be null (in case of freestle callback)
 				if (data) {
-					var targetField = item.attrs[data.field]
+					var targetField = item.attrs[data.field];
 					if (targetField instanceof ObjectID) {
 						if (data.map[targetField.toString()]) {
 							// Setting a one2one records here
-							item.attrs[data.field] = data.map[targetField.toString()]
+							item.attrs[data.field] = data.map[targetField.toString()];
 						}
 					}
 					if (_.isArray(targetField)) {
@@ -778,13 +778,13 @@ var DBRequest = Query.extend({
 				if (!ids[field]) {
 					ids[field] = [];
 				}
-				if (item.attrs[field] instanceof ObjectID) {
-					ids[field].push(item.attrs[field])
+				if (tryMongoId(item.attrs[field]) instanceof ObjectID) {
+					ids[field].push(item.attrs[field]);
 				}
 				// Check for arrays
 				if (_.isArray(item.attrs[field])) {
 					_.each(item.attrs[field], function(possibleID) {
-						if (possibleID instanceof ObjectID) {
+						if (tryMongoId(possibleID) instanceof ObjectID) {
 							ids[field].push(possibleID);
 						}
 					});
@@ -805,7 +805,7 @@ var DBRequest = Query.extend({
 			} else {
 				return resolve(models);
 			}
-		})
+		});
 	},
 	required: function(isRequired, rejectionMessage) {
 		this._recordRequired = isRequired !== undefined ? isRequired : true;
