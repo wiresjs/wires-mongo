@@ -525,6 +525,11 @@ var DBRequest = Query.extend({
 					totalResult: count
 				});
 				return self.all().then(function(models) {
+					var paginatorData = paginator.getPaginationData();
+
+					paginatorData.distantFirst = paginatorData.range[0] !== 1 ? 1 : null;
+					paginatorData.distantLast = paginatorData.range[paginatorData.length - 1] !== paginatorData.last ? paginatorData.last : null;
+					
 					var output = {
 						paginator: paginator.getPaginationData(),
 						items: models
