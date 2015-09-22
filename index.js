@@ -529,9 +529,9 @@ var DBRequest = Query.extend({
 
 					paginatorData.distantFirst = paginatorData.range[0] !== 1 ? 1 : null;
 					paginatorData.distantLast = paginatorData.range[paginatorData.length - 1] !== paginatorData.last ? paginatorData.last : null;
-					
+
 					var output = {
-						paginator: paginator.getPaginationData(),
+						paginator: paginatorData,
 						items: models
 					};
 					return resolve(output);
