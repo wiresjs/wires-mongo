@@ -285,7 +285,7 @@ You can pass a custom message if needed
 Item.find({name : "test"}).required("This record is very important")
 ```
 
-## Count
+### Count
 
 A simple query for count
 ```js
@@ -294,21 +294,18 @@ TestUser.find().count().then(function(num) {
 })
 ```
 
-## Paginator
-Items can be paginated. Wires-mongo uses https://www.npmjs.com/package/pagination module.
-```js
-Item.find().paginate({page: 1, perPage: 10, range : 10})
-```
-All defined options are optional.
-Returns a promise, in fact an alternative for "all" request with a small difference - The output looks like this:
+### Sorting
 
+You can sort items using the according method:
 ```js
-{
-  "paginator" : {},
-  "items" : {}
-}
+TestUser.sort("name"); // Default is asc
+TestUser.sort("name", "desc"); // Setting direction
+TestUser.sort({ // Passing some specific condition
+   score: {
+      $meta: "textScore"
+   }
+});
 ```
-
 
 ### Query with projection
 It is possible to pass a projection. Add a projection to your model's properties
@@ -330,8 +327,34 @@ var user = new TestUser();
 user.projection("user");
 ```
 
+You can also pass an object
+
+
+```js
+var user = new TestUser();
+user.projection({
+   score: {
+      $meta: "textScore"
+   }
+});
+```
+
 See [tests](wiresjs/wires-mongo/blob/master/test/base_model_test.js) for better understanding
 
+## Paginator
+Items can be paginated. Wires-mongo uses https://www.npmjs.com/package/pagination module.
+```js
+Item.find().paginate({page: 1, perPage: 10, range : 10})
+```
+All defined options are optional.
+Returns a promise, in fact an alternative for "all" request with a small difference - The output looks like this:
+
+```js
+{
+  "paginator" : {},
+  "items" : {}
+}
+```
 
 
 ## Saving
