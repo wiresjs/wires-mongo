@@ -265,6 +265,15 @@ Instead of getting ObjectId as a result, activerecord will collect all ids that 
 Item.find().with("tags", Tag)
 ```
 
+You can use nested "with" statements with attached query condition if needed
+
+```js
+User.find(user)
+   .required()
+   .with("sessions", Session)
+   .with("friends", User.with("friends", User.find({active : true})))
+```
+
 See [with-query tests](wiresjs/wires-mongo/blob/master/test/with-query.js) for better understanding
 
 ### Required record
