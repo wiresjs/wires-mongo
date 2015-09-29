@@ -1,32 +1,32 @@
 {
-  "name": "wires-mongo",
-  "version": "1.5.13",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/wiresjs/wires-mongo.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/wiresjs/wires-mongo/issues"
-  },
-  "homepage": "https://github.com/wiresjs/wires-mongo",
-  "dependencies": {
-    "lodash": "^3.7.0",
-    "log4js": "^0.6.24",
-    "mongodb": "^2.0.42",
-    "pagination": "^0.4.3",
-    "promise": "^7.0.1",
-    "resolveall": "^1.0.2",
-    "wires-class": "^1.0.0",
-    "wires-domain": "^1.4.0"
-  },
-  "devDependencies": {
-    "should": "^6.0.1"
-  }
+   "name": "wires-mongo",
+   "version": "1.6.00",
+   "description": "",
+   "main": "index.js",
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/wiresjs/wires-mongo.git"
+   },
+   "author": "",
+   "license": "ISC",
+   "bugs": {
+      "url": "https://github.com/wiresjs/wires-mongo/issues"
+   },
+   "homepage": "https://github.com/wiresjs/wires-mongo",
+   "dependencies": {
+      "lodash": "^3.7.0",
+      "log4js": "^0.6.24",
+      "mongodb": "^2.0.42",
+      "pagination": "^0.4.3",
+      "promise": "^7.0.1",
+      "resolveall": "^1.0.2",
+      "wires-class": "^1.0.0",
+      "wires-domain": "^1.4.0"
+   },
+   "devDependencies": {
+      "should": "^6.0.1"
+   }
 }
