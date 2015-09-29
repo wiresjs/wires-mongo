@@ -4,7 +4,7 @@ var _ = require('lodash');
 var Promise = require("promise");
 var logger = require("log4js").getLogger("model");
 var ObjectID = require('mongodb').ObjectID;
-var resolveall = require("resolveall")
+var resolveall = require("resolveall");
 var pagination = require("pagination");
 var Model;
 
@@ -18,29 +18,29 @@ var getMongoIdFromString = function(value) {
 		}
 	}
 	return null;
-}
+};
 
 var convertStringToMongoId = function(value) {
-	var v = getMongoIdFromString(value)
+	var v = getMongoIdFromString(value);
 	if (v) {
 		value = v;
 	}
 	return value;
-}
+};
 
 var tryMongoId = function(value) {
 
 	// Arrays are returned right away
 	if (_.isArray(value)) {
 		_.each(value, function(item, index) {
-			value[index] = tryMongoId(item)
+			value[index] = tryMongoId(item);
 		});
 		return value;
 	}
 	// Objects are returned right away
 	if (_.isPlainObject(value)) {
 		_.each(value, function(v, k) {
-			value[k] = tryMongoId(v)
+			value[k] = tryMongoId(v);
 		});
 		return value;
 	}
@@ -52,7 +52,7 @@ var tryMongoId = function(value) {
 	// If it's an instance of Model -> extract _id from it
 	if (value instanceof Model) {
 		if (value.get("_id")) {
-			value = tryMongoId(value.get("_id").toString())
+			value = tryMongoId(value.get("_id").toString());
 		}
 		return value;
 	}
@@ -69,7 +69,7 @@ var tryMongoId = function(value) {
 		}
 	}
 	return value;
-}
+};
 
 var _uniqueArray = function(list) {
 	var newlist = [];
@@ -81,13 +81,13 @@ var _uniqueArray = function(list) {
 			}
 			if (!storage[item.toString()]) {
 				storage[item.toString()] = 1;
-				newlist.push(item)
+				newlist.push(item);
 			}
 		}
 	});
 
 	return newlist;
-}
+};
 
 var ValidationBase = Class.extend({
 	initialize: function() {},
@@ -119,21 +119,21 @@ var ValidationBase = Class.extend({
 			return reject({
 				status: 400,
 				message: message
-			})
-		}
+			});
+		};
 		for (var key in this.schema) {
 			var params = this.schema[key];
 			if (_.isPlainObject(params)) {
 				var required = params.required;
 				if (_.isBoolean(required)) {
 					if (required === true && self.attrs[key] === undefined) {
-						return decline("Field '" + key + "' is required")
+						return decline("Field '" + key + "' is required");
 					}
 				}
 				// Custom function******************************
 				if (_.isFunction(required)) {
 					if (self.attrs[key] === undefined) {
-						return decline("Field '" + key + "' is required")
+						return decline("Field '" + key + "' is required");
 					}
 					var result;
 					try {
@@ -142,13 +142,13 @@ var ValidationBase = Class.extend({
 						return reject(e);
 					}
 					if (result) {
-						return decline(result.toString())
+						return decline(result.toString());
 					}
 				}
 
 				if (required instanceof RegExp) {
 					if (!_.isString(self.attrs[key])) {
-						return decline("Field '" + key + "' should be a string")
+						return decline("Field '" + key + "' should be a string");
 					}
 					var stringValue = self.attrs[key].toString();
 					if (!stringValue.match(required)) {
@@ -189,7 +189,7 @@ var ValidationBase = Class.extend({
 		}
 		return resolve();
 	}
-})
+});
 var EventBase = ValidationBase.extend({
 	initialize: function() {},
 	// Triggers each time key is set
@@ -242,10 +242,10 @@ var EventBase = ValidationBase.extend({
 
 						// Excluding from an array
 						if (action === "exclude") {
-							var criteria = {}
+							var criteria = {};
 							criteria[key] = {
 								$in: [id]
-							}
+							};
 							return Instance.find(criteria).all().then(function(_records) {
 								return domain.each(_records, function(record) {
 									//1
@@ -368,6 +368,10 @@ var ProjectionBase = EventBase.extend({
 	// Sets appropriate projection
 	projection: function(name) {
 
+		if (_.isPlainObject(name)) {
+			this._reqParams.projectionArray = name;
+			return;
+		}
 		var projections = this.constructor.prototype.projections || {};
 
 		var projection = projections[name];
@@ -406,6 +410,27 @@ var ProjectionBase = EventBase.extend({
 var Query = ProjectionBase.extend({
 	initialize: function() {},
 
+	findByText: function(text, options) {
+		this._reqParams.query = _.merge(this._reqParams.query, {
+			$text: {
+				$search: text
+			}
+		});
+		options = options || {};
+		if (options.sort) {
+			this.sort({
+				score: {
+					$meta: "textScore"
+				}
+			});
+			this.projection({
+				score: {
+					$meta: "textScore"
+				}
+			});
+		}
+		return this;
+	},
 	// Finds data
 	// Defines criterion based on 2 (key, value) or 1 arguments
 	// Should a proper mongo query
@@ -415,6 +440,7 @@ var Query = ProjectionBase.extend({
 		} else {
 			var filteredCriteria = {};
 			var first = arguments[0];
+			var second = arguments[1];
 			if (_.isPlainObject(first)) {
 				var query = tryMongoId(first);
 				this._reqParams.query = _.merge(this._reqParams.query, query);
@@ -449,8 +475,13 @@ var Query = ProjectionBase.extend({
 	// Sorting can be acieved with option parameter sort which takes an array of sort preferences
 	// [['field1','asc'], ['field2','desc']]
 	sort: function(sort, direction) {
-		this._reqParams.options.sort = this._reqParams.options.sort || [];
-		this._reqParams.options.sort.push([sort, direction || "asc"]);
+		if (_.isPlainObject(sort)) {
+			this._reqParams.options.sort = this._reqParams.options.sort || {};
+			this._reqParams.options.sort = _.merge(this._reqParams.options.sort, sort);
+		} else {
+			this._reqParams.options.sort = this._reqParams.options.sort || [];
+			this._reqParams.options.sort.push([sort, direction || "asc"]);
+		}
 		return this;
 	},
 	// Sets number to option using key
@@ -458,7 +489,7 @@ var Query = ProjectionBase.extend({
 	_setNumberValueToOption: function(key, number) {
 		var num;
 		if ((num = this._getValidNumber(number)) !== undefined) {
-			this._reqParams.options[key] = num
+			this._reqParams.options[key] = num;
 		} else {
 			delete this._reqParams.options[key];
 		}
@@ -528,7 +559,8 @@ var DBRequest = Query.extend({
 					var paginatorData = paginator.getPaginationData();
 
 					paginatorData.distantFirst = paginatorData.range[0] !== 1 ? 1 : null;
-					paginatorData.distantLast = paginatorData.range[paginatorData.length - 1] !== paginatorData.last ? paginatorData.last : null;
+					paginatorData.distantLast = paginatorData.range[paginatorData.range.length - 1] !== paginatorData.last ?
+						paginatorData.last : null;
 
 					var output = {
 						paginator: paginatorData,
@@ -669,6 +701,19 @@ var DBRequest = Query.extend({
 			});
 		});
 	},
+	createIndex: function(fieldOrSpec, options) {
+		var collectionName = this.collectionName;
+		return new Promise(function(resolve, reject) {
+			domain.require(function($db) {
+				$db.collection(collectionName).createIndex(fieldOrSpec, options, function(err, indexInfo) {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(indexInfo);
+				});
+			});
+		});
+	},
 	count: function() {
 		var self = this;
 		return new Promise(function(resolve, reject) {
@@ -692,7 +737,8 @@ var DBRequest = Query.extend({
 					logger.info("QUERY FROM " + collectionName + " ->\n" + JSON.stringify(self._reqParams.query, 2, 2));
 				}
 				$db.collection(collectionName)
-					.find(self._reqParams.query, self._reqParams.projectionArray || {}, self._reqParams.options, function(err,
+					.find(self._reqParams.query, self._reqParams.projectionArray || {}, self._reqParams.options, function(
+						err,
 						cursor) {
 						if (err) {
 							return reject(err);
@@ -831,7 +877,9 @@ var DBRequest = Query.extend({
 					if (docs.length === 0 && self._recordRequired) {
 						return reject({
 							status: 404,
-							message: self._rejectionMessage ? self._rejectionMessage : (_.isString(self._recordRequired) ? self._recordRequired :
+							message: self._rejectionMessage ? self._rejectionMessage : (_.isString(self._recordRequired) ?
+								self
+								._recordRequired :
 								"Record is required")
 						})
 					}
@@ -1227,5 +1275,21 @@ module.exports = Model = AccessHelpers.extend({
 	findById: function() {
 		var instance = new this();
 		return instance.findById.apply(instance, arguments);
+	},
+	findByText: function() {
+		var instance = new this();
+		return instance.findByText.apply(instance, arguments);
+	},
+	createIndex: function() {
+		var instance = new this();
+		return instance.createIndex.apply(instance, arguments);
 	}
+});
+
+// Register index creator
+
+domain.service("$wiresMongoIndexer", function() {
+	return function() {
+
+	};
 });
