@@ -171,7 +171,58 @@ schema: {
 }
 ```
 
+## Indexes
+Set "index" property to a field like so:
+```js
+schema: {
+    _id: [],
+    title: {
+       index: 1
+    },
+    description: {
+       index: "text"
+    },
+    addition: {
+       index: "text"
+    }
+ }
+```
+2 indexes will be created. { title : 1 } and {description : "text",addition : "text" }
 
+There can be only one text index on a collection, therefore ORM reads propeties and combines all text indexes into one.
+
+### Create all indexes
+```js
+Item.createAllIndexes().then(function(){
+ // indexes created
+});
+```
+Automatically creates all defined indexes on a specific model
+
+### Create index manually
+```js
+Item.createIndex({
+  title: "text",
+  description: "text"
+}).then(function(result) {
+}).catch(reject);
+```
+
+You can use fully featured mongo API to create your own index
+
+```js
+createIndex: function(fieldOrSpec, options)
+```
+
+### Require and create indexes
+For your own convience a services called $wiresMongoIndexer will require and create all indexes for models.
+```js
+domain.require(function($wiresMongoIndexer) {
+   return $wiresMongoIndexer("User", "Books", "Comments", ["Reviews", "Session"], ... )
+}).then(function(){
+   // All indexes are created
+})
+```
 
 ## Set Attributes
 
