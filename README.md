@@ -300,7 +300,35 @@ Makes a query:
 
 (findById is deprecated)
 
+## FindByText
+If you schema fields have { index : "text" } property you can easily start performing full featured mongo text
 
+Let's say your models looks like this:
+```js
+var Item = Model.extend({
+      collection: "test_items_index",
+      schema: {
+         _id: [],
+         title: {
+            index: "text"
+         },
+         description: {
+            index: "text"
+         }
+      }
+});
+```js
+
+
+After all indexes have been created you can use findByText method:
+```js
+Item.findByText("dogs and chocolate").all();
+```
+
+You sort the results by relevance as well:
+```js
+Item.findByText("dogs and chocolate", { sort: true }).all();
+```
 
 ## With/Join
 
