@@ -301,9 +301,9 @@ Makes a query:
 (findById is deprecated)
 
 ## FindByText
-If you schema fields have { index : "text" } property you can easily start performing full featured mongo text
+If you schema fields have { index : "text" } property you can easily start performing full featured mongo text search
 
-Let's say your models looks like this:
+Let's say your model looks like this:
 ```js
 var Item = Model.extend({
       collection: "test_items_index",
