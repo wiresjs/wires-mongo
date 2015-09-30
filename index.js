@@ -701,10 +701,35 @@ var DBRequest = Query.extend({
 			});
 		});
 	},
+	createAllIndexes: function() {
+		var self = this;
+		var schema = this.schema;
+		logger.info("Examining indexes of collection %s", this.collectionName);
+		var indexes = [];
+		var textIndex = {};
+		_.each(schema, function(field, fieldName) {
+			if (field.index) {
+				if (field.index === "text") {
+					textIndex[fieldName] = "text";
+				} else {
+					var fieldIndex = {};
+					fieldIndex[fieldName] = _.isBoolean(field.index) ? 1 : field.index;
+					indexes.push(fieldIndex);
+				}
+			}
+		});
+		if (_.size(textIndex) > 0) {
+			indexes.push(textIndex);
+		}
+		return domain.each(indexes, function(index) {
+			return self.createIndex(index);
+		});
+	},
 	createIndex: function(fieldOrSpec, options) {
 		var collectionName = this.collectionName;
 		return new Promise(function(resolve, reject) {
 			domain.require(function($db) {
+				logger.info("Creating %s index for %s", JSON.stringify(fieldOrSpec), collectionName);
 				$db.collection(collectionName).createIndex(fieldOrSpec, options, function(err, indexInfo) {
 					if (err) {
 						return reject(err);
@@ -881,7 +906,7 @@ var DBRequest = Query.extend({
 								self
 								._recordRequired :
 								"Record is required")
-						})
+						});
 					}
 					var models = [];
 					_.each(docs, function(item) {
@@ -892,8 +917,8 @@ var DBRequest = Query.extend({
 					// Attaching .$toJson
 					models.$toJSON = function() {
 						return self.arrayToJSON(models);
-					}
-					return resolve(models)
+					};
+					return resolve(models);
 				});
 			}).catch(reject);
 		}).then(function(models) {
@@ -901,20 +926,20 @@ var DBRequest = Query.extend({
 			// Resolving with statements
 			return new Promise(function(resolve, reject) {
 				if (Object.keys(self._reqParams.with).length === 0) {
-					return resolve(self.filterResults(models))
+					return resolve(self.filterResults(models));
 				}
-				var ids = self._extractIdsFromReferences(models)
-					// Creating functions to be resolved
+				var ids = self._extractIdsFromReferences(models);
+				// Creating functions to be resolved
 				var toResolve = [];
 				_.each(ids, function(withIds, key) {
-					var filteredString = {}
+					var filteredString = {};
 					var filtered = [];
 					// manual filter.. lodash does not do it's job .. ()
 					_.each(withIds, function(curID) {
 						var stringID = curID.toString();
 						if (!filteredString[stringID]) {
-							filteredString[stringID] = curID
-							filtered.push(curID)
+							filteredString[stringID] = curID;
+							filtered.push(curID);
 						}
 					});
 					toResolve.push(self.resolveWithRequest.bind({
@@ -1041,7 +1066,7 @@ module.exports = Model = AccessHelpers.extend({
 		if (_.isArray(target)) {
 			return domain.each(target, function(item) {
 				return self._add(item, property);
-			})
+			});
 		}
 		return self._add(target, property);
 	},
@@ -1127,7 +1152,7 @@ module.exports = Model = AccessHelpers.extend({
 					}
 					return true;
 				});
-				self.set(property, newArray)
+				self.set(property, newArray);
 				return resolve(newArray);
 			};
 			// If even is registered
@@ -1283,6 +1308,10 @@ module.exports = Model = AccessHelpers.extend({
 	createIndex: function() {
 		var instance = new this();
 		return instance.createIndex.apply(instance, arguments);
+	},
+	createAllIndexes: function() {
+		var instance = new this();
+		return instance.createAllIndexes.apply(instance, arguments);
 	}
 });
 
@@ -1290,6 +1319,22 @@ module.exports = Model = AccessHelpers.extend({
 
 domain.service("$wiresMongoIndexer", function() {
 	return function() {
+		var _models = _.flatten(arguments);
+		logger.info("Requiring %s models", _models.length);
+		return domain.each(_models, function(modelPath) {
+			logger.info("Requiring %s", modelPath);
+			return new Promise(function(resolve, reject) {
+				domain.require(modelPath, function(modelInstance) {
+					return resolve(modelInstance);
+				});
+			});
 
+		}).then(function(models) {
+			logger.info("All models have been required");
+			logger.info("Processing models ...");
+			return domain.each(models, function(ModelClass) {
+				return ModelClass.createAllIndexes();
+			});
+		});
 	};
 });

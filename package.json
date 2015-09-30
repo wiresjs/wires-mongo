@@ -1,6 +1,6 @@
 {
    "name": "wires-mongo",
-   "version": "1.6.00",
+   "version": "1.6.01",
    "description": "",
    "main": "index.js",
    "scripts": {
