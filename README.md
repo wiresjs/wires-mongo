@@ -171,7 +171,58 @@ schema: {
 }
 ```
 
+## Indexes
+Set "index" property to a field like so:
+```js
+schema: {
+    _id: [],
+    title: {
+       index: 1
+    },
+    description: {
+       index: "text"
+    },
+    addition: {
+       index: "text"
+    }
+ }
+```
+2 indexes will be created. { title : 1 } and {description : "text",addition : "text" }
 
+There can be only one text index on a collection, therefore ORM reads propeties and combines all text indexes into one.
+
+### Create all indexes
+```js
+Item.createAllIndexes().then(function(){
+ // indexes created
+});
+```
+Automatically creates all defined indexes on a specific model
+
+### Create index manually
+```js
+Item.createIndex({
+  title: "text",
+  description: "text"
+}).then(function(result) {
+}).catch(reject);
+```
+
+You can use fully featured mongo API to create your own index
+
+```js
+createIndex: function(fieldOrSpec, options)
+```
+
+### Require and create indexes
+For your own convience a services called $wiresMongoIndexer will require and create all indexes for models.
+```js
+domain.require(function($wiresMongoIndexer) {
+   return $wiresMongoIndexer("User", "Books", "Comments", ["Reviews", "Session"], ... )
+}).then(function(){
+   // All indexes are created
+})
+```
 
 ## Set Attributes
 
@@ -249,7 +300,35 @@ Makes a query:
 
 (findById is deprecated)
 
+## FindByText
+If you schema fields have { index : "text" } property you can easily start performing full featured mongo text search
 
+Let's say your model looks like this:
+```js
+var Item = Model.extend({
+      collection: "test_items_index",
+      schema: {
+         _id: [],
+         title: {
+            index: "text"
+         },
+         description: {
+            index: "text"
+         }
+      }
+});
+```js
+
+
+After all indexes have been created you can use findByText method:
+```js
+Item.findByText("dogs and chocolate").all();
+```
+
+You sort the results by relevance as well:
+```js
+Item.findByText("dogs and chocolate", { sort: true }).all();
+```
 
 ## With/Join
 
