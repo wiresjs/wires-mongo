@@ -1323,6 +1323,10 @@ module.exports = Model = AccessHelpers.extend({
 		var instance = new this();
 		return instance.createIndex.apply(instance, arguments);
 	},
+	dropIndexes: function() {
+		var instance = new this();
+		return instance.dropIndexes.apply(instance, arguments);
+	},
 	createAllIndexes: function() {
 		var instance = new this();
 		return instance.createAllIndexes.apply(instance, arguments);
