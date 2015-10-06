@@ -11,8 +11,12 @@ describe('Equals test', function() {
       collection: "test_items_index",
       schema: {
          _id: [],
-         title: {},
-         description: {}
+         title: {
+            index: "text"
+         },
+         description: {
+            index: "text"
+         }
       }
    });
 

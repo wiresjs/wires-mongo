@@ -739,6 +739,20 @@ var DBRequest = Query.extend({
 			});
 		});
 	},
+	dropIndexes: function(fieldOrSpec, options) {
+		var collectionName = this.collectionName;
+		return new Promise(function(resolve, reject) {
+			domain.require(function($db) {
+				logger.info("Dropping all indexes on %s", collectionName);
+				$db.collection(collectionName).dropIndexes(function(err, indexInfo) {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(indexInfo);
+				});
+			});
+		});
+	},
 	count: function() {
 		var self = this;
 		return new Promise(function(resolve, reject) {
