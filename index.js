@@ -370,7 +370,7 @@ var ProjectionBase = EventBase.extend({
 
 		if (_.isPlainObject(name)) {
 			this._reqParams.projectionArray = name;
-			return;
+			return this;
 		}
 		var projections = this.constructor.prototype.projections || {};
 
@@ -1253,6 +1253,9 @@ module.exports = Model = AccessHelpers.extend({
 		_.each(schema, function(params, name) {
 			if (!params.hidden) {
 				var v = self.attrs[name];
+				if (params.toJSON) {
+					v = params.toJSON.bind(self)(v);
+				}
 				if (_.isArray(v)) {
 					v = self.arrayToJSON(v);
 				} else {

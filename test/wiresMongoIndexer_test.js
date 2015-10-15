@@ -5,7 +5,7 @@ var domain = require("wires-domain");
 var TestUser = require("./model.js");
 var ObjectID = require('mongodb').ObjectID;
 
-describe('Equals test', function() {
+describe('Wire mongo indexer test', function() {
 
    var Item = Model.extend({
       collection: "test_items_index",
