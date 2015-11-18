@@ -171,6 +171,19 @@ schema: {
 }
 ```
 
+*toJSON*
+Function will be called on the model's toJSON. "this" is the current model
+```js
+schema: {
+   _id: [],
+   name: {
+      toJSON : function(value){
+      	return this.get("name").toLowerCase();
+      }
+   }
+}
+```
+
 ## Indexes
 Set "index" property to a field like so:
 ```js
