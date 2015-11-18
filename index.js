@@ -1066,10 +1066,45 @@ module.exports = Model = AccessHelpers.extend({
 	onAttributeSet: function(key, value) {
 		return value;
 	},
+	//s
 	_setAttribute: function(k, v) {
+		var path = k.split("\.");
+		var self = this;
+		if (path.length === 0) {
+			return;
+		}
 		if (this._attrIsValid(k, k)) {
 			this.attrs[k] = this.onAttributeSet(k, v);
+			return this;
 		}
+		if (path.length >= 2) {
+			var initialArray = this.attrs[path[0]];
+			var value = initialArray;
+			if (value === undefined) {
+				value = {};
+				this.attrs[path[0]] = value;
+			}
+			for (var i = 1; i < path.length; i++) {
+				var x = path[i];
+				if (i === path.length - 1) {
+					value[x] = v;
+				} else {
+					if (value[x] === undefined) {
+						var nvalue = {};
+						value[x] = nvalue;
+						value = nvalue;
+					} else {
+						if (value[x] instanceof Model) {
+							value = value[x].attrs;
+						} else {
+							value = value[x];
+						}
+					}
+				}
+			}
+			return;
+		}
+
 	},
 	with: function(field, model) {
 		this._reqParams.with[field] = model;
