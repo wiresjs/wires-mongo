@@ -1227,7 +1227,7 @@ module.exports = Model = AccessHelpers.extend({
 		return "";
 	},
 	// Can use dot notations
-	get: function(key) {
+	get: function(key, defaultValue) {
 		if (key && key.indexOf(".") > -1) {
 			var value = this.attrs;
 			var path = key.split("\.");
@@ -1256,10 +1256,10 @@ module.exports = Model = AccessHelpers.extend({
 					}
 				}
 			});
-			return value;
+			return value !== undefined ? value : defaultValue;
 		}
 
-		return this.attrs[key];
+		return this.attrs[key] !== undefined ? this.attrs[key] : defaultValue;
 	},
 	unset: function() {
 		var fields = _.flatten(arguments);
