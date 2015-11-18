@@ -254,7 +254,15 @@ It is possible to constuct model with a dictionary
 var user = new User({name : "john"});
 ```
 
-You can use dot notation to get a particular object
+You can use dot notation to set/get a particular object
+
+
+```js
+user.set('somedict.name','john')
+user.set('a.b.c.d',{})
+```
+
+Note that set does not understand arrays, but get does
 
 ```js
 user.get('somedict.name')

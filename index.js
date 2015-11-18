@@ -1102,9 +1102,8 @@ module.exports = Model = AccessHelpers.extend({
 					}
 				}
 			}
-			return;
 		}
-
+		return this;
 	},
 	with: function(field, model) {
 		this._reqParams.with[field] = model;
