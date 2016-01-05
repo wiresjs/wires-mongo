@@ -1244,7 +1244,7 @@ module.exports = Model = AccessHelpers.extend({
 						}
 					}
 				} else {
-					if (value[k] !== undefined) {
+					if (value !== undefined && value !== null && value[k] !== undefined) {
 						if (value[k] instanceof Model) {
 							value = value[k].attrs;
 						} else {
