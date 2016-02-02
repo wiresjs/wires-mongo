@@ -94,8 +94,8 @@ var ValidationBase = Class.extend({
 	// Validates key and value
 	// Now checks if attributes presents in schema
 	// Needs to be extended later on
-	_attrIsValid: function(k, v) {
-		return this.schema[v] !== undefined;
+	_attrIsValid: function(k) {
+		return this.schema[k] !== undefined;
 	},
 	_queryValue: function(key, value) {
 		return tryMongoId(value);
@@ -1070,13 +1070,12 @@ module.exports = Model = AccessHelpers.extend({
 	_setAttribute: function(k, v) {
 		var path = k.split("\.");
 		var self = this;
-		if (path.length === 0) {
-			return;
-		}
-		if (this._attrIsValid(k, k)) {
+
+		if (this._attrIsValid(k)) {
 			this.attrs[k] = this.onAttributeSet(k, v);
 			return this;
 		}
+
 		if (path.length >= 2) {
 			var initialArray = this.attrs[path[0]];
 			var value = initialArray;
