@@ -8,6 +8,10 @@ var resolveall = require("resolveall");
 var pagination = require("pagination");
 var Model;
 
+function getRandomInt(min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 var getMongoIdFromString = function(value) {
 	if (value.length === 24) {
 		var validMongoId = new RegExp("^[0-9a-fA-F]{24}$");
@@ -654,6 +658,13 @@ var DBRequest = Query.extend({
 	// Gets all records
 	all: function() {
 		return this.dbRequest();
+	},
+	firstRandom: function() {
+		var self = this;
+		return this.count().then(function(amount) {
+			var random = getRandomInt(0, amount - 1);
+			return self.skip(random).limit(1).first();
+		});
 	},
 	// Gets the first one
 	first: function() {

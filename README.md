@@ -303,6 +303,16 @@ TestUser.find("name", "john")
 
 You can use either first() or all() for performing mongodb request
 
+## Random
+
+You can call firstRandom() the get random result from a set. In the background counts records in the database, and adds "skip" parameter with random number
+
+```js
+TestUser.find().firstRandom();
+```
+
+Don't use limit() or skip() while performing firstRandom(). It will be overridden.
+
 ### Find by id
 IF you use find with 1 argument, wires-mongo assumes you want to find a record by id.
 You can pass a string, model reference, or ObjectID accordingly  
