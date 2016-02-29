@@ -16,6 +16,7 @@ describe('Removing should be okay', function() {
          nested: {},
          somelist: {},
          somelist: {},
+         basic: {},
          somemodelList: {
             reference: true
          },
@@ -32,6 +33,7 @@ describe('Removing should be okay', function() {
          nested: {
             hello: 1
          },
+         basic: ["hello", "world"],
          somelist: [{
             name: "pukka"
          }],
@@ -44,7 +46,6 @@ describe('Removing should be okay', function() {
             name: 'John'
          })
       });
-
 
    });
 
@@ -73,5 +74,8 @@ describe('Removing should be okay', function() {
    });
    it('It should get second item from an array and return undefined', function() {
       should.equal(user.get('somelist.2.name'), undefined)
+   });
+   it('It should get undefined when retreiving from an array', function() {
+      should.equal(user.get('basic.2'), undefined)
    });
 });

@@ -1251,6 +1251,9 @@ module.exports = Model = AccessHelpers.extend({
 							if (value instanceof Model) {
 								value = value.attrs;
 							}
+						} else {
+							value = undefined;
+							return false;
 						}
 					}
 				} else {
