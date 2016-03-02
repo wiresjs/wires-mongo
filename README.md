@@ -612,7 +612,7 @@ item.ensureUnique({title: 'hello'}, 'You are wrong! (Optional error)');
 item.save();
 ```
 
-Will perform a query and reject if a record found
+Will perform a query and reject if record is found
 
 ## Cascade remove
 
