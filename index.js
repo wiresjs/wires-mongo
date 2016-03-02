@@ -594,6 +594,28 @@ var DBRequest = Query.extend({
 	forceId: function(id) {
 		this._forced_id = id;
 	},
+
+	onBeforeCreateEnsurance: function(resolve, reject) {
+		var self = this;
+		if (this._ensure) {
+			if (this._ensure.unique) {
+				var ensuredNewInstance = this.newInstance();
+				return ensuredNewInstance.find(this._ensure.unique).first().then(function(newRecord) {
+					if (newRecord) {
+						return reject({
+							status: 404,
+							message: self._ensure.err || 'Record should be unique!'
+						});
+					}
+					return resolve();
+				});
+			}
+		}
+		return resolve();
+	},
+	onBeforeUpdateSaveEnsurance: function(resolve, reject) {
+		return resolve();
+	},
 	// Saves data
 	// Should check for _id. If it is there, then it's and update
 	// if not - insert
@@ -603,6 +625,7 @@ var DBRequest = Query.extend({
 
 		return resolveall.chain([
 			this._validate,
+			isNewRecord ? this.onBeforeCreateEnsurance : this.onBeforeUpdateSaveEnsurance,
 			// this variable is bound for easy operations within
 			this.onBeforeSave,
 			// If it's a new record resolving onBeforeCreate
@@ -665,6 +688,19 @@ var DBRequest = Query.extend({
 			var random = getRandomInt(0, amount - 1);
 			return self.skip(random).limit(1).first();
 		});
+	},
+	ensure: function(type, prop, err) {
+		if (type === 'unique') {
+			this._ensure = this._ensure || {};
+			if (_.isPlainObject(prop) && _.keys(prop).length > 0) {
+				this._ensure.unique = prop;
+				this._ensure.err = err;
+			}
+		}
+		return this;
+	},
+	ensureUnique: function(prop, err) {
+		return this.ensure('unique', prop, err);
 	},
 	// Gets the first one
 	first: function() {
@@ -1065,7 +1101,7 @@ module.exports = Model = AccessHelpers.extend({
 		}
 	},
 	newInstance: function(args) {
-		var Parent = this.constructor();
+		var Parent = this.constructor;
 		return new Parent(args);
 	},
 	mergeRequestParams: function(data) {
