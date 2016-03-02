@@ -602,6 +602,18 @@ item.exclude(tag, "tags").then(function(){
 It calls "onExcludeFrom" + YouPropertyNameInCameCase if defined. It has the exact same behavior as the adding method
 
 
+## Ensure unique
+
+Sometimes before saving you want to be sure that a record is unique.
+
+```js
+var item = new Item({title : "hello"});
+item.ensureUnique({title: 'hello'}, 'You are wrong! (Optional error)');
+item.save();
+```
+
+Will perform a query and reject if a record found
+
 ## Cascade remove
 
 Reference can be automatically removed. Add this property to a model
