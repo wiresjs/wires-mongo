@@ -435,6 +435,24 @@ var Query = ProjectionBase.extend({
 		}
 		return this;
 	},
+	aggregate: function(q) {
+		var collectionName = this.collectionName;
+		var self = this;
+		//8
+		return new Promise(function(resolve, reject) {
+			return domain.require(function($db) {
+				$db.collection(collectionName).aggregate(q, function(
+					err,
+					data) {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(data);
+				});
+			});
+		})
+
+	},
 	// Finds data
 	// Defines criterion based on 2 (key, value) or 1 arguments
 	// Should a proper mongo query
@@ -1384,6 +1402,10 @@ module.exports = Model = AccessHelpers.extend({
 	find: function() {
 		var instance = new this();
 		return instance.find.apply(instance, arguments);
+	},
+	aggregate: function() {
+		var instance = new this();
+		return instance.aggregate.apply(instance, arguments);
 	},
 	required: function() {
 		var instance = new this();
