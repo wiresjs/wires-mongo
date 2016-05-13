@@ -1444,7 +1444,7 @@ Model = AccessHelpers.extend({
 
 // Register index creator
 
-domain.module('wires.mongo.Mongo', function() {
+domain.module('wires.mongo.Model', function() {
    return Model;
 });
 domain.service("$wiresMongoIndexer", function() {
